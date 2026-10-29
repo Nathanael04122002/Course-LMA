@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Siswa | LMA – Lerne mit Andre</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div id="navbarContainer"></div>
+
+  <main class="portal-main">
+    
+    <!-- Greeting Banner -->
+    <div class="greeting-banner">
+      <div class="greeting-text">
+        <span class="greeting-badge">
+          <i class="ph-fill ph-sparkle"></i> Portal Belajar LMA Bali
+        </span>
+        <h2 class="greeting-title" id="greetingUser">Hallo, Semangat Belajar! 👋</h2>
+        <p class="greeting-desc">
+          Selamat datang di kelas online interaktif LMA. Akses modul pembelajaran, masuk ke Google Meet kelas, ikuti kuis seru, dan jangan lupa absen ya!
+        </p>
+      </div>
+      <div class="greeting-action" style="display: flex; flex-direction: column; gap: 0.6rem;">
+        <a href="meet.html" class="btn btn-yellow btn-lg">
+          <i class="ph-bold ph-video-camera"></i> Ruang Google Meet
+        </a>
+        <button type="button" class="btn btn-sm" onclick="openProfileModal()" style="background: rgba(255, 255, 255, 0.2); border: 1.5px solid rgba(255, 255, 255, 0.6); color: white; border-radius: var(--radius-sm); font-weight: 700;">
+          <i class="ph-bold ph-user-gear"></i> Ubah Profil Saya
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Class Notification Banner (Dynamic) -->
+    <div id="liveBannerContainer"></div>
+
+    <!-- Quick 4 Features Action Cards -->
+    <div class="section-heading-group">
+      <h3 class="section-title">
+        <i class="ph-fill ph-compass" style="color: var(--primary);"></i> Menu Belajar Utama
+      </h3>
+    </div>
+
+    <div class="feature-grid">
+      <!-- 1. Google Meet -->
+      <a href="meet.html" class="feature-card">
+        <div class="card-icon-bubble red">
+          <i class="ph-fill ph-video-camera"></i>
+        </div>
+        <h3>Google Meet Live</h3>
+        <p>Akses link tatap muka kelas online Bahasa Jerman & Matematika SD bersama Kak Andre.</p>
+        <span class="btn btn-sm btn-outline" style="align-self: flex-start;">
+          Masuk Kelas <i class="ph-bold ph-arrow-right"></i>
+        </span>
+      </a>
+
+      <!-- 2. Modul Belajar -->
+      <a href="modul.html" class="feature-card">
+        <div class="card-icon-bubble blue">
+          <i class="ph-fill ph-book-open"></i>
+        </div>
+        <h3>Modul Pembelajaran</h3>
+        <p>Rangkuman materi lengkap, materi kosakata Jerman, trik hitung cepat, dan file unduhan.</p>
+        <span class="btn btn-sm btn-outline" style="align-self: flex-start;">
+          Buka Modul <i class="ph-bold ph-arrow-right"></i>
+        </span>
+      </a>
+
+      <!-- 3. Kuis Interaktif -->
+      <a href="kuis.html" class="feature-card">
+        <div class="card-icon-bubble yellow">
+          <i class="ph-fill ph-game-controller"></i>
+        </div>
+        <h3>Kuis Interaktif</h3>
+        <p>Asah kemampuan dengan kuis pilihan ganda seru, dapatkan bintang prestasi dan skor tertinggi!</p>
+        <span class="btn btn-sm btn-outline" style="align-self: flex-start;">
+          Mulai Kuis <i class="ph-bold ph-arrow-right"></i>
+        </span>
+      </a>
+
+      <!-- 4. Absen Simple -->
+      <a href="absen.html" class="feature-card">
+        <div class="card-icon-bubble green">
+          <i class="ph-fill ph-check-square-offset"></i>
+        </div>
+        <h3>Absensi Simple</h3>
+        <p>Cukup 1-klik untuk konfirmasi kehadiran harianmu di sesi kelas Open Class LMA.</p>
+        <span class="btn btn-sm btn-outline" style="align-self: flex-start;">
+          Isi Kehadiran <i class="ph-bold ph-arrow-right"></i>
+        </span>
+      </a>
+    </div>
+
+    <!-- Quick Progress & Modules Preview -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+      
+      <!-- Box 1: Status Kehadiran & Nilai -->
+      <div style="background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+          <h4 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800;">
+            <i class="ph-fill ph-chart-line-up" style="color: var(--primary);"></i> Aktivitas Belajarmu
+          </h4>
+          <span id="badgeTodayAbsen" class="status-chip hadir">Memeriksa...</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius-sm); text-align: center;">
+            <span style="font-size: 1.8rem; font-weight: 800; color: var(--primary);" id="statHadirCount">1</span>
+            <p style="font-size: 0.78rem; font-weight: 700; color: var(--primary-dark);">Total Kehadiran</p>
+          </div>
+          <div style="background: var(--accent-yellow-light); padding: 1rem; border-radius: var(--radius-sm); text-align: center;">
+            <span style="font-size: 1.8rem; font-weight: 800; color: #B7791F;" id="statAvgScore">100</span>
+            <p style="font-size: 0.78rem; font-weight: 700; color: #744210;">Rata-rata Skor Kuis</p>
+          </div>
+        </div>
+
+        <a href="absen.html" class="btn btn-primary btn-block">
+          <i class="ph-bold ph-fingerprint"></i> Cek & Isi Absensi Hari Ini
+        </a>
+      </div>
+
+      <!-- Box 2: Modul Belajar Pilihan -->
+      <div style="background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+          <h4 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800;">
+            <i class="ph-fill ph-star" style="color: #D69E2E;"></i> Modul Rekomendasi
+          </h4>
+          <a href="modul.html" class="section-link">Lihat Semua <i class="ph-bold ph-arrow-right"></i></a>
+        </div>
+
+        <div id="quickModulList">
+          <div style="padding: 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <strong style="font-size: 0.9rem;">🇩🇪 Modul 1: Begrüßung (Salam)</strong>
+              <p style="font-size: 0.75rem; color: var(--gray);">Bahasa Jerman • Pemula A1.1</p>
+            </div>
+            <a href="modul.html" class="btn btn-sm btn-outline">Baca</a>
+          </div>
+          <div style="padding: 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <strong style="font-size: 0.9rem;">🔢 Modul 1: Trik Cepat Perkalian</strong>
+              <p style="font-size: 0.75rem; color: var(--gray);">Matematika SD • Kelas 4-6</p>
+            </div>
+            <a href="modul.html" class="btn btn-sm btn-outline">Baca</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const user = requireAuth();
+    if (user) {
+      renderPortalNavbar('dashboard');
+      document.getElementById('greetingUser').innerHTML = `Hallo, ${user.name.split(' ')[0]}! 👋 Semangat Belajar!`;
+      loadDashboardStats();
+    }
+
+    async function loadDashboardStats() {
+      const res = await api.get('/dashboard/stats');
+      if (res && res.success) {
+        // Tampilkan Live Class jika ada
+        if (res.liveClass && res.liveClass.status === 'live') {
+          document.getElementById('liveBannerContainer').innerHTML = `
+            <div class="live-alert-card">
+              <div class="live-alert-info">
+                <span class="live-badge-glow">
+                  <span class="live-dot"></span> LIVE SEKARANG
+                </span>
+                <div>
+                  <strong style="font-size: 1.05rem; color: #9B2C2C;">${res.liveClass.title}</strong>
+                  <p style="font-size: 0.82rem; color: #742A2A;">Instruktur: ${res.liveClass.instructor} • Program: ${res.liveClass.program}</p>
+                </div>
+              </div>
+              <a href="${res.liveClass.meet_link}" target="_blank" class="btn btn-danger">
+                <i class="ph-bold ph-video-camera"></i> GABUNG GOOGLE MEET
+              </a>
+            </div>
+          `;
+        }
+
+        // Statistik
+        if (res.stats) {
+          if (res.stats.sudahAbsenHariIni) {
+            document.getElementById('badgeTodayAbsen').className = 'status-chip hadir';
+            document.getElementById('badgeTodayAbsen').innerText = '✅ Sudah Absen Hari Ini';
+          } else {
+            document.getElementById('badgeTodayAbsen').className = 'status-chip izin';
+            document.getElementById('badgeTodayAbsen').innerText = '⏳ Belum Absen';
+          }
+
+          document.getElementById('statHadirCount').innerText = res.stats.totalHadirCount || 1;
+          document.getElementById('statAvgScore').innerText = res.stats.rataRataSkor || 100;
+        }
+      }
+    }
+  </script>
+</body>
+</html>

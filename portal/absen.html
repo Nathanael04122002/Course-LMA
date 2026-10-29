@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi Harian Siswa | LMA – Lerne mit Andre</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div id="navbarContainer"></div>
+
+  <main class="portal-main">
+    
+    <!-- Big 1-Click Absen Container -->
+    <div class="absen-hero-box">
+      <span class="greeting-badge" style="background: var(--primary-light); color: var(--primary); border: none;">
+        <i class="ph-fill ph-calendar-check"></i> Absensi Kelas Online LMA
+      </span>
+
+      <!-- Identitas Siswa Tercantum Jelas -->
+      <div style="margin-top: 0.75rem; background: var(--gray-light); display: inline-block; padding: 0.45rem 1.25rem; border-radius: var(--radius-full); font-size: 0.88rem; font-weight: 700; color: var(--dark);">
+        <i class="ph-bold ph-student" style="color: var(--primary);"></i> Absensi Siswa an: <span id="studentNameBadge" style="color: var(--primary);">Memuat nama...</span>
+      </div>
+
+      <div class="clock-live-text" id="liveClockDisplay">00:00:00 WIB</div>
+      <p style="font-size: 0.95rem; color: var(--gray); margin-bottom: 0.25rem;" id="liveLocalTimeDisplay">
+        Waktu Tempat Login: Memuat...
+      </p>
+      <p style="font-size: 0.95rem; color: var(--gray); margin-bottom: 1.75rem;" id="liveDateDisplay">
+        Hari ini: Memuat tanggal...
+      </p>
+
+      <!-- Main Action Area -->
+      <div id="absenActionArea">
+        <div style="margin-bottom: 1.25rem; max-width: 420px; margin-left: auto; margin-right: auto; text-align: left; background: #F8FAFC; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--border);">
+          <label class="form-label" style="font-size:0.9rem; color:var(--dark);">Pilih Status Kehadiran Hari Ini:</label>
+          <select id="selectStatusAbsen" class="form-select" style="font-size: 1rem; font-weight: 700;">
+            <option value="hadir">✅ Hadir Mengikuti Kelas</option>
+            <option value="izin">📝 Izin (Berhalangan Hadir)</option>
+            <option value="sakit">🩺 Sakit (Istirahat)</option>
+          </select>
+
+          <div style="margin-top: 0.75rem;">
+            <label class="form-label" style="font-size:0.8rem; color:var(--gray);">Keterangan / Catatan Tambahan (Opsional):</label>
+            <input type="text" id="absenKeteranganInput" class="form-input" style="font-size:0.85rem;" placeholder="contoh: Hadir via laptop dari Denpasar / Sakit demam...">
+          </div>
+        </div>
+
+        <button class="absen-btn-huge" id="btnDoAbsen" onclick="submitAttendance()">
+          <i class="ph-bold ph-fingerprint"></i> KLIK SIMPAN STATUS KEHADIRAN
+        </button>
+      </div>
+
+      <!-- State: Already Checked In (Initially Hidden) -->
+      <div id="alreadyCheckedInBox" style="display: none;">
+        <div style="display: inline-flex; align-items: center; gap: 0.75rem; background: var(--accent-green-light); color: #22543D; padding: 1rem 2rem; border-radius: var(--radius-full); font-weight: 800; font-size: 1.15rem; margin-bottom: 1rem;">
+          <i class="ph-bold ph-check-circle" style="font-size: 1.5rem;"></i>
+          <span id="checkedInNotice">Kehadiranmu Hari Ini Telah Dicatat!</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--gray); margin-bottom: 1.25rem;">
+          Terima kasih telah mengonfirmasi kehadiran. Data kamu telah tercatat di rekap presensi guru.
+        </p>
+        <button type="button" class="btn btn-outline btn-sm" onclick="showChangeAttendanceForm()" style="background: white; border-color: var(--primary); color: var(--primary); font-weight: 700;">
+          <i class="ph-bold ph-pencil-simple"></i> Ingin Mengubah Status Kehadiran? Klik di Sini
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Tabel Riwayat Kehadiran Pribadi -->
+    <div class="section-heading-group">
+      <h3 class="section-title">
+        <i class="ph-fill ph-clock-counter-clockwise" style="color: var(--primary);"></i> Riwayat Kehadiranku
+      </h3>
+      <span style="font-size: 0.88rem; font-weight: 700; color: var(--gray);">
+        Total Hadir: <span id="totalHadirBadge" style="color: var(--primary);">0</span> Hari
+      </span>
+    </div>
+
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Waktu Absen</th>
+            <th>Status</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody id="absenHistoryBody">
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--gray); padding: 2rem;">
+              Memuat data riwayat absensi...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const user = requireAuth();
+    let currentFormattedWIB = '';
+    let currentLocalTime = '';
+
+    if (user) {
+      renderPortalNavbar('absen');
+      document.getElementById('studentNameBadge').innerText = `${user.name} (${user.kelas || 'Siswa LMA'})`;
+      startLiveClock();
+      checkTodayStatus();
+      loadMyAttendance();
+    }
+
+    function startLiveClock() {
+      function update() {
+        const now = new Date();
+        
+        // Waktu WIB (Standar Utama Waktu Indonesia Barat)
+        const wibTime = new Intl.DateTimeFormat('id-ID', {
+          timeZone: 'Asia/Jakarta',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        }).format(now);
+        currentFormattedWIB = `${wibTime} WIB`;
+
+        // Waktu lokal browser tempat siswa login
+        const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Jakarta';
+        const localTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        currentLocalTime = `${localTime} (${localTz.split('/').pop().replace('_', ' ')})`;
+
+        const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        
+        document.getElementById('liveClockDisplay').innerText = currentFormattedWIB;
+        document.getElementById('liveLocalTimeDisplay').innerText = `Waktu Tempat Anda: ${currentLocalTime}`;
+        document.getElementById('liveDateDisplay').innerText = `Hari ini: ${dateStr}`;
+      }
+      update();
+      setInterval(update, 1000);
+    }
+
+    async function checkTodayStatus() {
+      const res = await api.get('/absen/today');
+      if (res && res.success) {
+        if (res.hasCheckedIn && res.data) {
+          document.getElementById('absenActionArea').style.display = 'none';
+          document.getElementById('alreadyCheckedInBox').style.display = 'block';
+          const jam = res.data.waktu ? ` (Pukul ${res.data.waktu})` : '';
+          const statusTxt = (res.data.status || 'HADIR').toUpperCase();
+          document.getElementById('checkedInNotice').innerText = `Kehadiranmu: ${statusTxt}${jam}`;
+          if (res.data.status) {
+            document.getElementById('selectStatusAbsen').value = res.data.status;
+          }
+        } else {
+          document.getElementById('absenActionArea').style.display = 'block';
+          document.getElementById('alreadyCheckedInBox').style.display = 'none';
+        }
+      }
+    }
+
+    function showChangeAttendanceForm() {
+      document.getElementById('alreadyCheckedInBox').style.display = 'none';
+      document.getElementById('absenActionArea').style.display = 'block';
+      document.getElementById('btnDoAbsen').innerHTML = '<i class="ph-bold ph-floppy-disk"></i> SIMPAN PERUBAHAN STATUS';
+      showToast('Silakan pilih status baru dan klik simpan.', 'success');
+    }
+
+    async function submitAttendance() {
+      const status = document.getElementById('selectStatusAbsen').value;
+      const keteranganCustom = document.getElementById('absenKeteranganInput').value.trim();
+      const btn = document.getElementById('btnDoAbsen');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menyimpan Kehadiran...';
+
+      const finalKeterangan = keteranganCustom || `Presensi mandiri siswa (${status.toUpperCase()}) - Login: ${currentLocalTime}`;
+
+      const res = await api.post('/absen', {
+        status,
+        client_time: currentFormattedWIB,
+        client_timezone: 'WIB',
+        keterangan: finalKeterangan
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ph-bold ph-fingerprint"></i> KLIK SIMPAN STATUS KEHADIRAN';
+
+      if (res && res.success) {
+        showToast(res.message || 'Status kehadiran berhasil disimpan!', 'success');
+        checkTodayStatus();
+        loadMyAttendance();
+      } else {
+        showToast(res.message || 'Gagal menyimpan kehadiran.', 'error');
+      }
+    }
+
+    async function loadMyAttendance() {
+      const res = await api.get('/absen/my');
+      const tbody = document.getElementById('absenHistoryBody');
+
+      if (res && res.success && res.data.length > 0) {
+        document.getElementById('totalHadirBadge').innerText = res.totalHadir || res.data.length;
+
+        tbody.innerHTML = res.data.map(item => {
+          const formattedDate = new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+          let chipClass = 'hadir';
+          let chipLabel = 'Hadir Tepat Waktu';
+          if (item.status === 'izin') { chipClass = 'izin'; chipLabel = 'Izin'; }
+          if (item.status === 'sakit') { chipClass = 'sakit'; chipLabel = 'Sakit'; }
+
+          return `
+            <tr>
+              <td><strong>${formattedDate}</strong></td>
+              <td>${item.waktu || '-'}</td>
+              <td><span class="status-chip ${chipClass}">${chipLabel}</span></td>
+              <td style="color:var(--gray);">${item.keterangan || '-'}</td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--gray);">Belum ada riwayat absensi tercatat.</td></tr>';
+      }
+    }
+  </script>
+</body>
+</html>

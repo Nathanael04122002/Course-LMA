@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuis Interaktif Seru | LMA – Lerne mit Andre</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/portal.css">
+  <style>
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--dark);
+      cursor: pointer;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.2s ease;
+    }
+    .option-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .option-btn.selected {
+      border-color: var(--primary);
+      background: #DCE7FD;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+    .opt-letter {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--gray-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .option-btn.selected .opt-letter {
+      background: var(--primary);
+      color: white;
+    }
+    .star-reward {
+      font-size: 3rem;
+      animation: popStar 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popStar {
+      0% { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div id="navbarContainer"></div>
+
+  <main class="portal-main">
+    
+    <!-- Heading Banner -->
+    <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+      <div>
+        <span class="greeting-badge" style="background: var(--accent-yellow-light); color: #744210; border:none;">
+          <i class="ph-fill ph-game-controller"></i> Arena Kuis & Asah Otak
+        </span>
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--primary-dark); margin-top: 0.5rem;">
+          Kuis Interaktif Anak Pintar
+        </h2>
+        <p style="color: var(--gray); font-size: 0.95rem; margin-top: 0.25rem;">
+          Jawab pertanyaan seru bahasa Jerman & matematika SD untuk mengumpulkan bintang dan menguji pemahamanmu!
+        </p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn btn-primary btn-sm" id="tabBtnList" onclick="switchQuizTab('list')">
+          <i class="ph-bold ph-list"></i> Daftar Kuis
+        </button>
+        <button class="btn btn-outline btn-sm" id="tabBtnHistory" onclick="switchQuizTab('history')">
+          <i class="ph-bold ph-trophy"></i> Riwayat Nilai Saya
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 1: DAFTAR KUIS -->
+    <div id="quizListView">
+      <div class="section-heading-group">
+        <h3 class="section-title">
+          <i class="ph-fill ph-sparkle" style="color: #D69E2E;"></i> Pilih Kuis untuk Dimainkan
+        </h3>
+      </div>
+
+      <div id="quizListContainer">
+        <div style="text-align: center; padding: 2rem; color: var(--gray);">
+          <i class="ph-bold ph-spinner ph-spin" style="font-size: 2rem;"></i>
+          <p style="margin-top: 0.5rem;">Memuat daftar kuis...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: ARENA PENGERJAAN KUIS -->
+    <div id="quizPlayView" style="display: none;">
+      <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-md); max-width: 800px; margin: 0 auto;">
+        
+        <!-- Header Kuis -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+          <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; color: var(--primary-dark);" id="playQuizTitle">
+              Judul Kuis
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--gray);" id="playQuizDesc">Deskripsi</p>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="cancelQuizPlay()">
+            <i class="ph-bold ph-x"></i> Keluar
+          </button>
+        </div>
+
+        <!-- Progress Bar & Soal Container -->
+        <div id="questionsContainer"></div>
+
+        <div style="margin-top: 2rem; text-align: right;">
+          <button class="btn btn-primary btn-lg" id="btnSubmitQuiz" onclick="submitCurrentQuiz()">
+            <i class="ph-bold ph-paper-plane-tilt"></i> Kirim Jawaban & Lihat Nilai!
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 3: RIWAYAT NILAI SISWA -->
+    <div id="quizHistoryView" style="display: none;">
+      <div class="section-heading-group">
+        <h3 class="section-title">
+          <i class="ph-fill ph-trophy" style="color: #D69E2E;"></i> Catatan Bintang & Nilai Kuis Saya
+        </h3>
+      </div>
+
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nama Kuis</th>
+              <th>Tanggal</th>
+              <th>Jawaban Benar</th>
+              <th>Skor Akhir</th>
+              <th>Peringkat Bintang</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--gray); padding: 2rem;">
+                Memuat riwayat nilai...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal Hasil Kuis -->
+  <div class="modal-overlay" id="quizResultModal">
+    <div class="modal-container" style="max-width: 580px; text-align: center;">
+      <div class="modal-body" style="padding: 2.5rem 2rem;">
+        <div class="star-reward" id="modalStarIcon">🏆</div>
+        
+        <h3 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--primary-dark); margin: 0.75rem 0 0.25rem 0;" id="modalScoreTitle">
+          Skor: 100 / 100
+        </h3>
+        
+        <p style="font-size: 1.1rem; font-weight: 700; color: #D69E2E; margin-bottom: 0.5rem;" id="modalBadgeText">
+          Juara Sempurna ⭐⭐⭐
+        </p>
+
+        <p style="font-size: 0.92rem; color: var(--gray); margin-bottom: 1.5rem;" id="modalMessageText">
+          Luar biasa! Pertahankan prestasi belajarmu ya!
+        </p>
+
+        <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; text-align: left; max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem;" id="modalReviewList">
+          <!-- Pembahasan soal -->
+        </div>
+
+        <button class="btn btn-primary btn-block btn-lg" onclick="closeResultModal()">
+          <i class="ph-bold ph-check"></i> Selesai & Kembali ke Kuis
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const user = requireAuth();
+    let currentQuizData = null;
+    let selectedAnswers = {};
+
+    if (user) {
+      renderPortalNavbar('kuis');
+      loadQuizzes();
+    }
+
+    function switchQuizTab(tab) {
+      const listView = document.getElementById('quizListView');
+      const historyView = document.getElementById('quizHistoryView');
+      const playView = document.getElementById('quizPlayView');
+      const btnList = document.getElementById('tabBtnList');
+      const btnHist = document.getElementById('tabBtnHistory');
+
+      playView.style.display = 'none';
+
+      if (tab === 'list') {
+        listView.style.display = 'block';
+        historyView.style.display = 'none';
+        btnList.className = 'btn btn-primary btn-sm';
+        btnHist.className = 'btn btn-outline btn-sm';
+        loadQuizzes();
+      } else {
+        listView.style.display = 'none';
+        historyView.style.display = 'block';
+        btnList.className = 'btn btn-outline btn-sm';
+        btnHist.className = 'btn btn-primary btn-sm';
+        loadQuizHistory();
+      }
+    }
+
+    async function loadQuizzes() {
+      const res = await api.get('/kuis');
+      const container = document.getElementById('quizListContainer');
+
+      if (res && res.success && res.data.length > 0) {
+        container.innerHTML = res.data.map(quiz => `
+          <div class="quiz-card">
+            <div>
+              <span class="modul-badge ${quiz.kategori === 'jerman' ? 'jerman' : 'matematika'}">
+                ${quiz.kategori === 'jerman' ? '🇩🇪 Bahasa Jerman' : '🔢 Matematika SD'}
+              </span>
+              <h4 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: var(--dark); margin: 0.5rem 0 0.25rem 0;">
+                ${quiz.title}
+              </h4>
+              <p style="font-size: 0.88rem; color: var(--gray);">${quiz.deskripsi || 'Latihan soal seru dan interaktif.'}</p>
+              <div class="quiz-meta">
+                <span><i class="ph-bold ph-clock"></i> ${quiz.waktu_menit} Menit</span>
+                <span><i class="ph-bold ph-list-numbers"></i> ${quiz.total_soal} Pertanyaan</span>
+                <span style="color:#B7791F; font-weight:700;"><i class="ph-bold ph-star"></i> Total ${quiz.total_poin || (quiz.total_soal * 20)} Poin</span>
+              </div>
+            </div>
+            <button class="btn btn-yellow" onclick="startQuiz(${quiz.id})" style="white-space: nowrap;">
+              <i class="ph-bold ph-play"></i> Mulai Kuis
+            </button>
+          </div>
+        `).join('');
+      } else {
+        container.innerHTML = '<p style="color:var(--gray); text-align:center; padding:2rem;">Belum ada kuis tersedia.</p>';
+      }
+    }
+
+    async function startQuiz(quizId) {
+      showToast('Menyiapkan soal kuis...', 'success');
+      const res = await api.get(`/kuis/${quizId}`);
+
+      if (res && res.success) {
+        currentQuizData = res.data;
+        selectedAnswers = {};
+
+        document.getElementById('quizListView').style.display = 'none';
+        document.getElementById('quizHistoryView').style.display = 'none';
+        document.getElementById('quizPlayView').style.display = 'block';
+
+        document.getElementById('playQuizTitle').innerText = currentQuizData.title;
+        document.getElementById('playQuizDesc').innerText = `${currentQuizData.total_soal} Soal • Waktu santai: ${currentQuizData.waktu_menit} Menit`;
+
+        renderQuestions(currentQuizData.questions);
+        window.scrollTo({ top: 150, behavior: 'smooth' });
+      } else {
+        showToast('Gagal memuat soal kuis.', 'error');
+      }
+    }
+
+    function renderQuestions(questions) {
+      const container = document.getElementById('questionsContainer');
+      const letters = ['A', 'B', 'C', 'D'];
+
+      container.innerHTML = questions.map((q, idx) => `
+        <div style="margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; flex-shrink: 0;">
+                ${idx + 1}
+              </span>
+              <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--dark); line-height: 1.4;">
+                ${q.question}
+              </h4>
+            </div>
+            <span style="background: var(--accent-yellow-light); border: 1px solid #ECC94B; color: #744210; font-size: 0.75rem; font-weight: 800; padding: 0.25rem 0.65rem; border-radius: var(--radius-full); white-space: nowrap;">
+              ⭐ Nilai: ${q.points || 10} Poin
+            </span>
+          </div>
+
+          <div>
+            ${q.options.map((opt, optIdx) => `
+              <button type="button" class="option-btn" id="opt_${idx}_${optIdx}" onclick="selectAnswer(${idx}, ${optIdx})">
+                <span class="opt-letter">${letters[optIdx]}</span>
+                <span>${opt}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectAnswer(questionIdx, optionIdx) {
+      selectedAnswers[questionIdx] = optionIdx;
+      
+      // Update tampilan tombol terpilih
+      document.querySelectorAll(`[id^="opt_${questionIdx}_"]`).forEach(el => el.classList.remove('selected'));
+      const activeBtn = document.getElementById(`opt_${questionIdx}_${optionIdx}`);
+      if (activeBtn) activeBtn.classList.add('selected');
+    }
+
+    function cancelQuizPlay() {
+      if (confirm('Keluar dari kuis yang sedang berjalan? Jawaban belum tersimpan.')) {
+        switchQuizTab('list');
+      }
+    }
+
+    async function submitCurrentQuiz() {
+      const totalSoal = currentQuizData.questions.length;
+      const answeredCount = Object.keys(selectedAnswers).length;
+
+      if (answeredCount < totalSoal) {
+        if (!confirm(`Kamu baru menjawab ${answeredCount} dari ${totalSoal} soal. Tetap kirimkan jawaban sekarang?`)) {
+          return;
+        }
+      }
+
+      const btn = document.getElementById('btnSubmitQuiz');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menghitung Skor...';
+
+      const res = await api.post(`/kuis/${currentQuizData.id}/submit`, {
+        answers: selectedAnswers
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Kirim Jawaban & Lihat Nilai!';
+
+      if (res && res.success) {
+        showQuizResultModal(res);
+      } else {
+        showToast('Gagal mengirimkan kuis: ' + (res.message || ''), 'error');
+      }
+    }
+
+    function showQuizResultModal(result) {
+      const scoreDisplay = result.earned_points !== undefined 
+        ? `Nilai: ${result.earned_points} / ${result.max_points} Poin (${result.score}%)`
+        : `Skor: ${result.score} / 100`;
+
+      document.getElementById('modalScoreTitle').innerText = scoreDisplay;
+      document.getElementById('modalBadgeText').innerText = result.badge || 'Bintang Belajar ⭐';
+      document.getElementById('modalMessageText').innerText = result.message || 'Kerja bagus!';
+      
+      if (result.score === 100) {
+        document.getElementById('modalStarIcon').innerText = '🏆';
+      } else if (result.score >= 80) {
+        document.getElementById('modalStarIcon').innerText = '🎖️';
+      } else {
+        document.getElementById('modalStarIcon').innerText = '🌟';
+      }
+
+      // Review jawaban
+      const reviewBox = document.getElementById('modalReviewList');
+      if (result.review && result.review.length > 0) {
+        reviewBox.innerHTML = '<h5 style="margin-bottom:0.75rem; color:var(--dark);">Rincian Poin & Pembahasan Soal:</h5>' + result.review.map(r => `
+          <div style="margin-bottom:0.75rem; padding:0.65rem; background:white; border-radius:6px; border-left:4px solid ${r.isCorrect ? 'var(--accent-green)' : 'var(--accent-red)'}; font-size:0.85rem;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <strong>${r.question}</strong>
+              <span style="font-weight:800; font-size:0.75rem; color:${r.isCorrect ? 'var(--accent-green)' : 'var(--accent-red)'}; background:${r.isCorrect ? 'var(--accent-green-light)' : 'var(--accent-red-light)'}; padding:2px 8px; border-radius:10px;">
+                ${r.isCorrect ? `+${r.points || 10} Poin` : `0 / ${r.points || 10} Poin`}
+              </span>
+            </div>
+            <div style="margin-top:0.35rem;">
+              Jawabanmu: <span style="color:${r.isCorrect ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:700;">${r.userAnswer}</span><br>
+              ${!r.isCorrect ? `Jawaban Benar: <span style="color:var(--accent-green); font-weight:700;">${r.correctAnswer}</span><br>` : ''}
+              ${r.explanation ? `<em style="color:var(--gray); display:block; margin-top:0.25rem;">💡 ${r.explanation}</em>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } else {
+        reviewBox.innerHTML = '';
+      }
+
+      document.getElementById('quizResultModal').classList.add('active');
+    }
+
+    function closeResultModal() {
+      document.getElementById('quizResultModal').classList.remove('active');
+      switchQuizTab('history');
+    }
+
+    async function loadQuizHistory() {
+      const res = await api.get('/kuis/results/my');
+      const tbody = document.getElementById('historyTableBody');
+
+      if (res && res.success && res.data.length > 0) {
+        tbody.innerHTML = res.data.map(item => {
+          const dateStr = new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+          let badge = '⭐';
+          if (item.score === 100) badge = '⭐⭐⭐ Juara Sempurna';
+          else if (item.score >= 80) badge = '⭐⭐ Hebat Sekali';
+          else if (item.score >= 60) badge = '⭐ Bagus';
+
+          return `
+            <tr>
+              <td><strong>${item.quiz_title}</strong></td>
+              <td>${dateStr}</td>
+              <td>${item.jawaban_benar} / ${item.total_soal}</td>
+              <td><span style="font-size:1.1rem; font-weight:800; color:var(--primary);">${item.score}</span></td>
+              <td><span style="font-weight:700; color:#D69E2E;">${badge}</span></td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--gray);">Kamu belum pernah mengerjakan kuis. Yuk coba kuis pertamamu!</td></tr>';
+      }
+    }
+  </script>
+</body>
+</html>

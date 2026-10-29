@@ -1,0 +1,47 @@
+# ==========================================================
+# Konfigurasi Nginx untuk Website & Portal LMA di VPS
+# Letakkan di: /etc/nginx/sites-available/lma
+# Lalu symlink ke: /etc/nginx/sites-enabled/
+# ==========================================================
+
+server {
+    listen 80;
+    server_name namadomain-anda.com www.namadomain-anda.com;
+
+    # Root direktori website (berisi Landing Page dan folder portal)
+    root /var/www/LandingPage;
+    index index.html;
+
+    # 1. Routing Landing Page & Frontend Portal Statis
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 2. Portal Siswa & Guru
+    location /portal/ {
+        try_files $uri $uri/ /portal/index.html;
+    }
+
+    # 3. Reverse Proxy ke Backend Express.js (Port 5000)
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # 4. Uploads Modul PDF / Media
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:5000/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # Batas ukuran upload file (PDF materi)
+    client_max_body_size 25M;
+}

@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Pengajar / Admin | LMA – Lerne mit Andre</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/portal.css">
+  <style>
+    .upload-dropzone {
+      border: 2px dashed var(--primary);
+      background: var(--primary-light);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .upload-dropzone:hover {
+      background: #DCE7FD;
+    }
+    .question-builder-card {
+      background: #F8FAFC;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      position: relative;
+    }
+    .question-builder-card.active {
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div id="navbarContainer"></div>
+
+  <main class="portal-main">
+    
+    <!-- Admin Header -->
+    <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span class="greeting-badge" style="background: var(--accent-red-light); color: var(--accent-red); border:none;">
+          <i class="ph-fill ph-shield-check"></i> Mode Pengajar / Tutor LMA
+        </span>
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--primary-dark); margin-top: 0.5rem;">
+          Panel Manajemen Guru & Tutor
+        </h2>
+        <p style="color: var(--gray); font-size: 0.95rem; margin-top: 0.25rem;">
+          Kelola link Google Meet, upload modul PDF pembelajaran, buat soal kuis dengan pengaturan bobot nilai, dan pantau rekap absensi nama siswa.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="dashboard.html" class="btn btn-outline btn-sm">
+          <i class="ph-bold ph-arrow-left"></i> Kembali ke Dashboard Siswa
+        </a>
+      </div>
+    </div>
+
+    <!-- Admin Navigation Tabs -->
+    <div class="filter-tabs">
+      <button class="filter-btn active" id="tabBtnMeets" onclick="switchAdminTab('meets')">
+        <i class="ph-bold ph-video-camera"></i> Kelola Google Meet
+      </button>
+      <button class="filter-btn" id="tabBtnModul" onclick="switchAdminTab('modul')">
+        <i class="ph-bold ph-upload-simple"></i> Upload Modul PDF
+      </button>
+      <button class="filter-btn" id="tabBtnCreateQuiz" onclick="switchAdminTab('create-quiz')">
+        <i class="ph-bold ph-pencil-simple-line"></i> Buat Kuis & Atur Nilai
+      </button>
+      <button class="filter-btn" id="tabBtnAbsen" onclick="switchAdminTab('absen')">
+        <i class="ph-bold ph-check-square"></i> Rekap Absensi Siswa
+      </button>
+      <button class="filter-btn" id="tabBtnKuis" onclick="switchAdminTab('kuis')">
+        <i class="ph-bold ph-trophy"></i> Rekap Nilai Kuis
+      </button>
+      <button class="filter-btn" id="tabBtnStudents" onclick="switchAdminTab('students')">
+        <i class="ph-bold ph-users"></i> Kelola Akun Siswa
+        <span id="pendingBadgeChip" style="display:none; background:#E53E3E; color:white; font-size:0.72rem; padding:1px 7px; border-radius:12px; font-weight:800; margin-left:4px;">0</span>
+      </button>
+    </div>
+
+    <!-- ==================== TAB 1: KELOLA GOOGLE MEET ==================== -->
+    <div id="adminMeetsSection">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Form Tambah Meet -->
+        <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+          <h4 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--dark);">
+            <i class="ph-fill ph-plus-circle" style="color: var(--primary);"></i> Pasang Link Google Meet Kelas
+          </h4>
+
+          <form onsubmit="handleCreateMeet(event)">
+            <div class="form-group">
+              <label class="form-label">Judul Sesi Open Class</label>
+              <input type="text" id="meetTitle" class="form-input" placeholder="contoh: Live: Trik Hitung Pecahan SD" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Program</label>
+              <select id="meetProgram" class="form-select">
+                <option value="Bahasa Jerman">Bahasa Jerman</option>
+                <option value="Matematika SD">Matematika SD</option>
+                <option value="Bahasa Jerman & Matematika SD">Keduanya</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Link Google Meet</label>
+              <input type="url" id="meetLink" class="form-input" placeholder="https://meet.google.com/xxx-yyyy-zzz" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Waktu Mulai Sesi</label>
+              <input type="datetime-local" id="meetStartTime" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Status Sesi</label>
+              <select id="meetStatus" class="form-select">
+                <option value="upcoming">📅 Akan Datang (Upcoming)</option>
+                <option value="live">🔴 Live Now (Sedang Berlangsung)</option>
+                <option value="finished">Selesai</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Catatan Tambahan untuk Siswa</label>
+              <input type="text" id="meetNotes" class="form-input" placeholder="contoh: Siapkan buku catatan dan alat tulis">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btnSaveMeet">
+              <i class="ph-bold ph-floppy-disk"></i> Simpan Sesi Google Meet
+            </button>
+          </form>
+        </div>
+
+        <!-- Daftar Meet yang Ada -->
+        <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+          <h4 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; margin-bottom: 1.25rem; color: var(--dark);">
+            <i class="ph-fill ph-list" style="color: var(--primary);"></i> Daftar Sesi Google Meet Aktif
+          </h4>
+
+          <div id="adminMeetList" style="max-height: 480px; overflow-y: auto;">
+            <p style="color: var(--gray); text-align: center; padding: 2rem;">Memuat daftar meet...</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: UPLOAD & TAMBAH MODUL ==================== -->
+    <div id="adminModulSection" style="display: none;">
+      <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 2rem; box-shadow: var(--shadow-sm); max-width: 800px; margin: 0 auto;">
+        <h4 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--dark);">
+          <i class="ph-fill ph-file-pdf" style="color: var(--accent-red);"></i> Upload Modul Pembelajaran (PDF / Dokumen)
+        </h4>
+        <p style="color: var(--gray); font-size: 0.88rem; margin-bottom: 1.5rem;">
+          Unggah modul bahan ajar dalam format PDF, DOCX, PPTX, gambar materi, atau masukkan rangkuman teks interaktif.
+        </p>
+
+        <form onsubmit="handleCreateModul(event)">
+          <div class="form-group">
+            <label class="form-label">Judul Modul Lengkap</label>
+            <input type="text" id="modulTitle" class="form-input" placeholder="contoh: 🇩🇪 Modul 3: Meine Familie (Keluargaku)" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Kategori Program</label>
+              <select id="modulKategori" class="form-select">
+                <option value="jerman">🇩🇪 Bahasa Jerman</option>
+                <option value="matematika">🔢 Matematika SD</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tingkatan / Level Siswa</label>
+              <input type="text" id="modulLevel" class="form-input" placeholder="contoh: SD Kelas 4-6 / Pemula A1.1" required>
+            </div>
+          </div>
+
+          <!-- Upload File PDF / Dokumen -->
+          <div class="form-group">
+            <label class="form-label">File Lampiran Modul (PDF / Word / PPT / Gambar / Zip)</label>
+            <div class="upload-dropzone" onclick="document.getElementById('modulFileInput').click()">
+              <i class="ph-bold ph-cloud-arrow-up" style="font-size: 2.25rem; color: var(--primary);"></i>
+              <p style="font-weight: 700; color: var(--dark); margin: 0.35rem 0 0.15rem 0;">
+                Klik di sini untuk memilih file dokumen dari komputer
+              </p>
+              <span style="font-size: 0.78rem; color: var(--gray);">
+                Mendukung PDF, DOCX, PPTX, JPG, PNG, ZIP (Maksimal 25 MB)
+              </span>
+              <div id="fileSelectedBadge" style="display: none; margin-top: 0.75rem; background: white; padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 0.85rem; font-weight: 700; color: var(--primary);">
+                <i class="ph-bold ph-file-pdf"></i> <span id="fileSelectedName">nama-file.pdf</span> (<span id="fileSelectedSize">0 MB</span>)
+              </div>
+            </div>
+            <input type="file" id="modulFileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.zip" style="display: none;" onchange="handleFileSelected(this)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Atau Link Unduh Alternatif (Opsional, misal Google Drive)</label>
+            <input type="url" id="modulFileUrl" class="form-input" placeholder="https://drive.google.com/file/d/...">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ringkasan Singkat Modul</label>
+            <textarea id="modulDesc" class="form-textarea" rows="2" placeholder="Deskripsi singkat apa yang akan dipelajari siswa dalam modul ini..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Rangkuman Materi Teks (Bisa Langsung Dibaca Siswa di Layar)</label>
+            <textarea id="modulText" class="form-textarea" rows="5" placeholder="Tuliskan poin-poin materi atau trik rumus di sini agar siswa bisa langsung membaca tanpa download..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Perkiraan Durasi Belajar (Menit)</label>
+            <input type="number" id="modulDuration" class="form-input" value="30" min="5">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnSaveModul">
+            <i class="ph-bold ph-upload-simple"></i> Publikasikan Modul Pembelajaran
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: BUAT KUIS & ATUR NILAI SOAL ==================== -->
+    <div id="adminCreateQuizSection" style="display: none;">
+      <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 2rem; box-shadow: var(--shadow-sm); max-width: 850px; margin: 0 auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <h4 style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 800; color: var(--dark);">
+              <i class="ph-fill ph-pencil-simple-line" style="color: #D69E2E;"></i> Pembuat Kuis Mandiri (Custom Quiz Builder)
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--gray);">
+              Buat pertanyaan sendiri dan tentukan bobot nilai/poin untuk setiap soal secara bebas.
+            </p>
+          </div>
+          <div style="background: var(--accent-yellow-light); border: 1px solid #ECC94B; padding: 0.5rem 1rem; border-radius: var(--radius-sm); text-align: right;">
+            <span style="font-size: 0.75rem; font-weight: 700; color: #744210; display: block;">Total Nilai Kuis:</span>
+            <strong style="font-size: 1.3rem; color: #744210;" id="totalQuizPointsBadge">0 Poin</strong>
+          </div>
+        </div>
+
+        <form onsubmit="handlePublishCustomQuiz(event)">
+          <!-- Informasi Kuis -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Judul Kuis</label>
+              <input type="text" id="newQuizTitle" class="form-input" placeholder="contoh: Kuis Hafalan Angka Jerman 1-20" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kategori</label>
+              <select id="newQuizKategori" class="form-select">
+                <option value="jerman">🇩🇪 Bahasa Jerman</option>
+                <option value="matematika">🔢 Matematika SD</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="form-group">
+              <label class="form-label">Deskripsi Singkat Kuis</label>
+              <input type="text" id="newQuizDesc" class="form-input" placeholder="contoh: Uji ingatan kosakata angka dan warna">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Batas Waktu (Menit)</label>
+              <input type="number" id="newQuizDuration" class="form-input" value="10" min="1" required>
+            </div>
+          </div>
+
+          <!-- Area Pertanyaan Dinamis -->
+          <div style="margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h5 style="font-size: 1.05rem; font-weight: 800; color: var(--dark);">
+                Daftar Pertanyaan & Pilihan Jawaban
+              </h5>
+              <button type="button" class="btn btn-outline btn-sm" onclick="addNewQuestionCard()">
+                <i class="ph-bold ph-plus"></i> Tambah Soal
+              </button>
+            </div>
+
+            <div id="questionsBuilderContainer">
+              <!-- Kartu soal akan di-render di sini via JS -->
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+            <button type="button" class="btn btn-outline" onclick="addNewQuestionCard()">
+              <i class="ph-bold ph-plus-circle"></i> Tambah Soal Baru
+            </button>
+            <button type="submit" class="btn btn-primary btn-lg" id="btnPublishQuiz">
+              <i class="ph-bold ph-paper-plane-tilt"></i> Terbitkan Kuis Sekarang
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- ==================== TAB 4: REKAP ABSENSI SISWA LENGKAP ==================== -->
+    <div id="adminAbsenSection" style="display: none;">
+      <div class="section-heading-group">
+        <div>
+          <h3 class="section-title">
+            <i class="ph-fill ph-users-three" style="color: var(--primary);"></i> Rekap Absensi Seluruh Siswa LMA
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--gray); margin-top: 0.2rem;">
+            Melampirkan nama lengkap setiap siswa, kelas, tanggal, dan waktu login (WIB / Waktu Siswa).
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="searchStudentName" class="form-input" style="padding:0.4rem 0.75rem; font-size:0.85rem; width:200px;" placeholder="🔍 Cari nama siswa..." oninput="filterAbsenList()">
+          <button class="btn btn-outline btn-sm" onclick="window.print()">
+            <i class="ph-bold ph-printer"></i> Cetak Rekap
+          </button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Foto & Nama Lengkap Siswa</th>
+              <th>Program Kelas</th>
+              <th>Tanggal</th>
+              <th>Waktu Absen (WIB / Waktu Siswa)</th>
+              <th>Status Kehadiran</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="allAbsenTableBody">
+            <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--gray);">Memuat rekap absensi...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 5: REKAP HASIL KUIS ==================== -->
+    <div id="adminKuisSection" style="display: none;">
+      <div class="section-heading-group">
+        <h3 class="section-title">
+          <i class="ph-fill ph-trophy" style="color: #D69E2E;"></i> Rekap Hasil & Perolehan Nilai Kuis Siswa
+        </h3>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">
+          <i class="ph-bold ph-printer"></i> Cetak Nilai
+        </button>
+      </div>
+
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nama Siswa</th>
+              <th>Kuis yang Dikerjakan</th>
+              <th>Jawaban Benar</th>
+              <th>Nilai / Poin Akhir</th>
+              <th>Waktu Selesai (WIB)</th>
+            </tr>
+          </thead>
+          <tbody id="allKuisTableBody">
+            <tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--gray);">Memuat rekap nilai kuis...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 6: KELOLA AKUN SISWA ==================== -->
+    <div id="adminStudentsSection" style="display: none;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        
+        <!-- Form Pendaftaran Siswa oleh Guru -->
+        <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+          <h4 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--dark);">
+            <i class="ph-fill ph-user-plus" style="color: var(--primary);"></i> Daftarkan Akun Siswa Baru
+          </h4>
+          <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 1.25rem;">
+            Guru / Tutor dapat mendaftarkan email siswa secara manual dan menentukan password login awal siswa.
+          </p>
+
+          <form onsubmit="handleCreateStudent(event)">
+            <div class="form-group">
+              <label class="form-label">Nama Lengkap Siswa</label>
+              <input type="text" id="newStudentName" class="form-input" placeholder="contoh: Felicia Permata" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email Siswa (untuk Login)</label>
+              <input type="email" id="newStudentEmail" class="form-input" placeholder="contoh: felicia@gmail.com" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Program Kelas Pembelajaran</label>
+              <select id="newStudentKelas" class="form-select">
+                <option value="Bahasa Jerman & Matematika SD">🇩🇪 & 🔢 Bahasa Jerman & Matematika SD</option>
+                <option value="Bahasa Jerman Pemula">🇩🇪 Bahasa Jerman Pemula</option>
+                <option value="Matematika SD">🔢 Matematika SD</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label class="form-label" style="margin-bottom:0;">Password Awal Siswa</label>
+                <button type="button" class="btn btn-sm btn-outline" style="padding: 2px 8px; font-size: 0.75rem;" onclick="generateRandomStudentPassword()">
+                  <i class="ph-bold ph-arrows-clockwise"></i> Generate Acak
+                </button>
+              </div>
+              <input type="text" id="newStudentPassword" class="form-input" value="lma123" placeholder="Minimal 6 karakter" required>
+            </div>
+
+            <div style="background: #EBF2FF; border: 1px solid rgba(26,86,219,0.2); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.82rem; color: var(--primary-dark);">
+              <i class="ph-fill ph-envelope-simple"></i>
+              <strong>Notifikasi Email Otomatis:</strong> Email berisi petunjuk masuk & password akan dikirim ke email siswa tersebut (atau disimulasikan saat di lokal).
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" id="btnSubmitStudent">
+              <i class="ph-bold ph-paper-plane-tilt"></i> Buat Akun & Kirim Email Akses Siswa
+            </button>
+          </form>
+        </div>
+
+        <!-- Panduan & Rangkuman Akun Siswa -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+            <h4 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 800; color: var(--dark); margin-bottom: 0.75rem;">
+              <i class="ph-fill ph-info" style="color: var(--primary);"></i> Bagaimana Cara Siswa Masuk?
+            </h4>
+            <ol style="margin-left: 1.2rem; font-size: 0.88rem; color: var(--gray); line-height: 1.6;">
+              <li>Setelah guru mendaftarkan email siswa, siswa dapat langsung membuka <strong>portal/login.html</strong>.</li>
+              <li>Siswa memasukkan <strong>Email</strong> dan <strong>Password</strong> yang dibuatkan oleh guru.</li>
+              <li>Siswa langsung dapat mengakses seluruh modul materi, kuis harian, link Google Meet, dan absen.</li>
+              <li>Siswa dapat mengubah profil atau memperbarui password kapan saja.</li>
+            </ol>
+          </div>
+
+          <div style="background: linear-gradient(135deg, #0F3C9B 0%, #1A56DB 100%); border-radius: var(--radius-md); padding: 1.5rem; color: white;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="font-size: 0.85rem; font-weight: 700; opacity: 0.9;">TOTAL SISWA TERDAFTAR</span>
+              <i class="ph-bold ph-student" style="font-size: 1.5rem;"></i>
+            </div>
+            <div style="font-size: 2.5rem; font-weight: 800; font-family: var(--font-heading);" id="studentCountBadge">
+              0 Siswa
+            </div>
+            <p style="font-size: 0.82rem; opacity: 0.85; margin-top: 0.25rem;">
+              Semua siswa aktif dapat mengakses portal pembelajaran LMA Bali.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 1. KOTAK SISWA MENUNGGU PERSETUJUAN GURU (APPROVAL REQUIRED) -->
+      <div id="pendingStudentsCard" style="background: white; border: 2px solid #ECC94B; border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(236,201,75,0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h3 style="font-size: 1.15rem; color: #744210; margin: 0; font-family: var(--font-heading); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="ph-fill ph-hourglass-medium" style="color: #D69E2E; font-size: 1.3rem;"></i> Pendaftaran Siswa Menunggu Persetujuan Guru
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--gray); margin: 0.25rem 0 0 0;">
+              Siswa berikut mendaftar secara mandiri dan <strong>belum dapat login</strong> sebelum Anda menyetujui akun mereka.
+            </p>
+          </div>
+          <span id="pendingCountTag" class="badge" style="background: #FEFCBF; color: #744210; font-weight: 800; font-size: 0.85rem; border: 1px solid #ECC94B;">
+            0 Menunggu Persetujuan
+          </span>
+        </div>
+
+        <div class="table-card" style="box-shadow: none; border: 1px solid #E2E8F0;">
+          <table class="data-table">
+            <thead>
+              <tr style="background: #FFFDF5;">
+                <th>Nama Siswa</th>
+                <th>Email Pendaftaran</th>
+                <th>Program Kelas</th>
+                <th>Status</th>
+                <th style="text-align: right;">Aksi Persetujuan Guru</th>
+              </tr>
+            </thead>
+            <tbody id="pendingStudentsTableBody">
+              <tr><td colspan="5" style="text-align:center; padding:1.5rem; color:var(--gray);">Memeriksa pendaftaran siswa baru...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. TABEL DAFTAR AKUN SISWA AKTIF -->
+      <div class="section-heading-group">
+        <h3 class="section-title">
+          <i class="ph-fill ph-users-three" style="color: var(--primary);"></i> Daftar Akun Siswa Aktif
+        </h3>
+        <button class="btn btn-outline btn-sm" onclick="loadAdminStudents()">
+          <i class="ph-bold ph-arrows-clockwise"></i> Segarkan Data
+        </button>
+      </div>
+
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Siswa</th>
+              <th>Email Login</th>
+              <th>Program Kelas</th>
+              <th>Status Akun</th>
+              <th style="text-align: right;">Aksi Guru</th>
+            </tr>
+          </thead>
+          <tbody id="allStudentsTableBody">
+            <tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--gray);">Memuat daftar siswa...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const user = requireAuth(['guru', 'admin']);
+    let uploadedFileObj = null;
+    let questionsList = [];
+    let allAbsenRawData = [];
+
+    if (user) {
+      renderPortalNavbar('admin');
+      
+      // Default time
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('meetStartTime').value = now.toISOString().slice(0, 16);
+
+      loadAdminMeets();
+      initDefaultQuestionCards();
+    }
+
+    function switchAdminTab(tab) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('adminMeetsSection').style.display = 'none';
+      document.getElementById('adminModulSection').style.display = 'none';
+      document.getElementById('adminCreateQuizSection').style.display = 'none';
+      document.getElementById('adminAbsenSection').style.display = 'none';
+      document.getElementById('adminKuisSection').style.display = 'none';
+      document.getElementById('adminStudentsSection').style.display = 'none';
+
+      if (tab === 'meets') {
+        document.getElementById('tabBtnMeets').classList.add('active');
+        document.getElementById('adminMeetsSection').style.display = 'block';
+        loadAdminMeets();
+      } else if (tab === 'modul') {
+        document.getElementById('tabBtnModul').classList.add('active');
+        document.getElementById('adminModulSection').style.display = 'block';
+      } else if (tab === 'create-quiz') {
+        document.getElementById('tabBtnCreateQuiz').classList.add('active');
+        document.getElementById('adminCreateQuizSection').style.display = 'block';
+      } else if (tab === 'absen') {
+        document.getElementById('tabBtnAbsen').classList.add('active');
+        document.getElementById('adminAbsenSection').style.display = 'block';
+        loadAllAbsen();
+      } else if (tab === 'kuis') {
+        document.getElementById('tabBtnKuis').classList.add('active');
+        document.getElementById('adminKuisSection').style.display = 'block';
+        loadAllKuisResults();
+      } else if (tab === 'students') {
+        document.getElementById('tabBtnStudents').classList.add('active');
+        document.getElementById('adminStudentsSection').style.display = 'block';
+        loadAdminStudents();
+      }
+    }
+
+    // ==================== FITUR FILE UPLOAD MODUL ====================
+    function handleFileSelected(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        uploadedFileObj = file;
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+        document.getElementById('fileSelectedName').innerText = file.name;
+        document.getElementById('fileSelectedSize').innerText = sizeMB;
+        document.getElementById('fileSelectedBadge').style.display = 'inline-block';
+        showToast(`File "${file.name}" terpilih! Siap diunggah.`, 'success');
+      }
+    }
+
+    async function handleCreateModul(e) {
+      e.preventDefault();
+      const title = document.getElementById('modulTitle').value.trim();
+      const kategori = document.getElementById('modulKategori').value;
+      const level = document.getElementById('modulLevel').value.trim();
+      const deskripsi = document.getElementById('modulDesc').value.trim();
+      const materi_teks = document.getElementById('modulText').value.trim();
+      const durasi_menit = document.getElementById('modulDuration').value;
+      const manualUrl = document.getElementById('modulFileUrl').value.trim();
+
+      const btn = document.getElementById('btnSaveModul');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Mengunggah Modul...';
+
+      let file_url = manualUrl;
+      let file_name = uploadedFileObj ? uploadedFileObj.name : '';
+      let file_size = uploadedFileObj ? (uploadedFileObj.size / (1024 * 1024)).toFixed(2) + ' MB' : '';
+
+      if (uploadedFileObj) {
+        file_url = URL.createObjectURL(uploadedFileObj);
+      }
+
+      const res = await api.post('/modul', {
+        title, kategori, level, deskripsi, materi_teks, durasi_menit,
+        file_url, file_name, file_size
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ph-bold ph-upload-simple"></i> Publikasikan Modul Pembelajaran';
+
+      if (res && res.success) {
+        showToast('Modul pembelajaran beserta file berhasil diterbitkan!', 'success');
+        document.getElementById('modulTitle').value = '';
+        document.getElementById('modulDesc').value = '';
+        document.getElementById('modulText').value = '';
+        document.getElementById('modulFileUrl').value = '';
+        document.getElementById('fileSelectedBadge').style.display = 'none';
+        uploadedFileObj = null;
+      } else {
+        showToast(res.message || 'Gagal menerbitkan modul.', 'error');
+      }
+    }
+
+    // ==================== FITUR CUSTOM QUIZ BUILDER ====================
+    function initDefaultQuestionCards() {
+      questionsList = [
+        {
+          id: 1,
+          question: 'Apa arti dari kata "Guten Tag"?',
+          points: 25,
+          options: ['Selamat Siang / Sore', 'Selamat Malam', 'Sampai Jumpa', 'Terima Kasih'],
+          answerIndex: 0,
+          explanation: '"Guten Tag" adalah salam yang diucapkan pada siang/sore hari.'
+        },
+        {
+          id: 2,
+          question: 'Berapakah hasil dari 15 + 5 × 3?',
+          points: 25,
+          options: ['60', '30', '45', '25'],
+          answerIndex: 1,
+          explanation: 'Perkalian dikerjakan dulu: 5 × 3 = 15. Lalu 15 + 15 = 30.'
+        }
+      ];
+      renderQuestionsBuilder();
+    }
+
+    function renderQuestionsBuilder() {
+      const container = document.getElementById('questionsBuilderContainer');
+      const letters = ['A', 'B', 'C', 'D'];
+
+      container.innerHTML = questionsList.map((q, idx) => `
+        <div class="question-builder-card" id="qCard_${idx}">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <span style="background:var(--primary); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.88rem;">
+                ${idx + 1}
+              </span>
+              <strong style="color:var(--dark); font-size:1rem;">Pertanyaan Nomor ${idx + 1}</strong>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <!-- PENGATURAN NILAI / BOBOT SOAL -->
+              <div style="display:flex; align-items:center; gap:0.35rem; background:white; padding:0.35rem 0.75rem; border-radius:var(--radius-sm); border:1.5px solid var(--accent-yellow);">
+                <label style="font-size:0.8rem; font-weight:700; color:#744210;">⭐ Bobot Nilai:</label>
+                <input type="number" value="${q.points || 20}" min="1" max="100" style="width:65px; padding:2px 6px; border:1px solid #CBD5E0; border-radius:4px; font-weight:800; text-align:center;" oninput="updateQuestionPoints(${idx}, this.value)">
+                <span style="font-size:0.8rem; font-weight:700; color:#744210;">Poin</span>
+              </div>
+
+              ${questionsList.length > 1 ? `
+                <button type="button" class="btn btn-sm btn-outline" style="color:var(--accent-red);" onclick="removeQuestionCard(${idx})">
+                  <i class="ph-bold ph-trash"></i> Hapus
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <input type="text" class="form-input" style="font-weight:600;" placeholder="Tuliskan soal pertanyaan di sini..." value="${q.question}" oninput="updateQuestionText(${idx}, this.value)">
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
+            ${letters.map((let, optIdx) => `
+              <div style="display:flex; align-items:center; gap:0.5rem; background:white; padding:0.5rem 0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                <input type="radio" name="ansKey_${idx}" id="radio_${idx}_${optIdx}" ${q.answerIndex === optIdx ? 'checked' : ''} onchange="updateCorrectAnswer(${idx}, ${optIdx})">
+                <label for="radio_${idx}_${optIdx}" style="font-weight:800; font-size:0.85rem; color:var(--primary); cursor:pointer;">${let}.</label>
+                <input type="text" style="flex:1; border:none; outline:none; font-size:0.88rem; font-family:var(--font-main);" placeholder="Pilihan ${let}" value="${q.options[optIdx] || ''}" oninput="updateOptionText(${idx}, ${optIdx}, this.value)">
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <input type="text" class="form-input" style="font-size:0.82rem; background:white;" placeholder="💡 Pembahasan / Penjelasan singkat jawaban benar (opsional)..." value="${q.explanation || ''}" oninput="updateExplanationText(${idx}, this.value)">
+          </div>
+        </div>
+      `).join('');
+
+      updateTotalPointsDisplay();
+    }
+
+    function updateTotalPointsDisplay() {
+      const total = questionsList.reduce((sum, q) => sum + (Number(q.points) || 0), 0);
+      document.getElementById('totalQuizPointsBadge').innerText = `${total} Poin`;
+    }
+
+    function addNewQuestionCard() {
+      questionsList.push({
+        id: questionsList.length + 1,
+        question: '',
+        points: 25,
+        options: ['', '', '', ''],
+        answerIndex: 0,
+        explanation: ''
+      });
+      renderQuestionsBuilder();
+      showToast('Soal baru ditambahkan. Jangan lupa atur bobot nilainya ya!', 'success');
+    }
+
+    function removeQuestionCard(index) {
+      if (questionsList.length > 1) {
+        questionsList.splice(index, 1);
+        renderQuestionsBuilder();
+      }
+    }
+
+    function updateQuestionPoints(index, val) {
+      questionsList[index].points = Number(val) || 0;
+      updateTotalPointsDisplay();
+    }
+
+    function updateQuestionText(index, text) {
+      questionsList[index].question = text;
+    }
+
+    function updateOptionText(questionIdx, optIdx, text) {
+      questionsList[questionIdx].options[optIdx] = text;
+    }
+
+    function updateCorrectAnswer(questionIdx, optIdx) {
+      questionsList[questionIdx].answerIndex = optIdx;
+      showToast(`Kunci jawaban nomor ${questionIdx + 1} diatur ke opsi ${['A','B','C','D'][optIdx]}`, 'success');
+    }
+
+    function updateExplanationText(index, text) {
+      questionsList[index].explanation = text;
+    }
+
+    async function handlePublishCustomQuiz(e) {
+      e.preventDefault();
+      const title = document.getElementById('newQuizTitle').value.trim();
+      const kategori = document.getElementById('newQuizKategori').value;
+      const deskripsi = document.getElementById('newQuizDesc').value.trim();
+      const waktu_menit = document.getElementById('newQuizDuration').value;
+
+      // Validasi
+      for (let i = 0; i < questionsList.length; i++) {
+        const q = questionsList[i];
+        if (!q.question.trim()) {
+          showToast(`Soal nomor ${i + 1} belum memiliki teks pertanyaan!`, 'error');
+          return;
+        }
+        if (q.options.some(opt => !opt.trim())) {
+          showToast(`Semua pilihan opsi A, B, C, D di nomor ${i + 1} harus diisi!`, 'error');
+          return;
+        }
+      }
+
+      const btn = document.getElementById('btnPublishQuiz');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menerbitkan Kuis...';
+
+      const res = await api.post('/kuis', {
+        title, kategori, deskripsi, waktu_menit,
+        questions: questionsList
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Terbitkan Kuis Sekarang';
+
+      if (res && res.success) {
+        showToast(res.message || 'Kuis berhasil diterbitkan!', 'success');
+        document.getElementById('newQuizTitle').value = '';
+        document.getElementById('newQuizDesc').value = '';
+      } else {
+        showToast(res.message || 'Gagal menerbitkan kuis.', 'error');
+      }
+    }
+
+    // ==================== FITUR REKAP ABSENSI SISWA ====================
+    async function loadAllAbsen() {
+      const res = await api.get('/absen/all');
+      if (res && res.success) {
+        allAbsenRawData = res.data;
+        renderAbsenTable(allAbsenRawData);
+      }
+    }
+
+    function renderAbsenTable(list) {
+      const tbody = document.getElementById('allAbsenTableBody');
+      if (list && list.length > 0) {
+        tbody.innerHTML = list.map(item => {
+          const avatarUrl = item.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(item.user_name || 'Student')}`;
+          const formattedDate = new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+          
+          return `
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                  <img src="${avatarUrl}" alt="Avatar" style="width:36px; height:36px; border-radius:50%; background:var(--primary-light); border:1px solid var(--border);">
+                  <div>
+                    <strong style="color:var(--dark); font-size:0.95rem; display:block;">${item.user_name || 'Siswa LMA'}</strong>
+                    <span style="font-size:0.75rem; color:var(--gray);">${item.user_email || '-'}</span>
+                  </div>
+                </div>
+              </td>
+              <td><span class="modul-badge jerman">${item.user_kelas || 'Bahasa Jerman & Matematika SD'}</span></td>
+              <td><strong>${formattedDate}</strong></td>
+              <td>
+                <span style="font-weight:700; color:var(--primary);">
+                  <i class="ph-bold ph-clock"></i> ${item.waktu || '-'}
+                </span>
+              </td>
+              <td><span class="status-chip ${item.status || 'hadir'}">${(item.status || 'hadir').toUpperCase()}</span></td>
+              <td style="color:var(--gray); font-size:0.85rem;">${item.keterangan || '-'}</td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--gray);">Belum ada data absensi tercatat.</td></tr>';
+      }
+    }
+
+    function filterAbsenList() {
+      const keyword = document.getElementById('searchStudentName').value.toLowerCase();
+      const filtered = allAbsenRawData.filter(item => 
+        (item.user_name && item.user_name.toLowerCase().includes(keyword)) ||
+        (item.user_email && item.user_email.toLowerCase().includes(keyword))
+      );
+      renderAbsenTable(filtered);
+    }
+
+    // ==================== MEETS & KUIS RESULTS ====================
+    async function loadAdminMeets() {
+      const res = await api.get('/meets');
+      const list = document.getElementById('adminMeetList');
+      if (res && res.success && res.data.length > 0) {
+        list.innerHTML = res.data.map(m => `
+          <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <strong style="font-size: 0.95rem; color: var(--dark);">${m.title}</strong>
+                <p style="font-size: 0.78rem; color: var(--gray); margin-top: 0.2rem;">${m.program} &bull; ${new Date(m.start_time).toLocaleString('id-ID')}</p>
+                <a href="${m.meet_link}" target="_blank" style="font-size: 0.78rem; color: var(--primary); word-break: break-all;">${m.meet_link}</a>
+              </div>
+              <span class="status-chip ${m.status === 'live' ? 'sakit' : 'hadir'}">
+                ${m.status === 'live' ? '🔴 LIVE' : '📅 ' + m.status}
+              </span>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+              ${m.status !== 'live' ? `
+                <button class="btn btn-sm btn-danger" onclick="setMeetLive(${m.id})">
+                  🔴 Jadikan LIVE Sekarang
+                </button>
+              ` : `
+                <button class="btn btn-sm btn-outline" onclick="setMeetFinished(${m.id})">
+                  Selesaikan Kelas
+                </button>
+              `}
+              <button class="btn btn-sm btn-outline" style="color: var(--accent-red);" onclick="deleteMeet(${m.id})">
+                <i class="ph-bold ph-trash"></i> Hapus
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        list.innerHTML = '<p style="color:var(--gray); text-align:center; padding:2rem;">Belum ada sesi meet.</p>';
+      }
+    }
+
+    async function handleCreateMeet(e) {
+      e.preventDefault();
+      const title = document.getElementById('meetTitle').value;
+      const program = document.getElementById('meetProgram').value;
+      const meet_link = document.getElementById('meetLink').value;
+      const start_time = document.getElementById('meetStartTime').value;
+      const status = document.getElementById('meetStatus').value;
+      const notes = document.getElementById('meetNotes').value;
+
+      const res = await api.post('/meets', {
+        title, program, meet_link, start_time, status, notes
+      });
+
+      if (res && res.success) {
+        showToast('Sesi Google Meet berhasil dibuat!', 'success');
+        document.getElementById('meetTitle').value = '';
+        document.getElementById('meetLink').value = '';
+        loadAdminMeets();
+      } else {
+        showToast(res.message || 'Gagal menyimpan meet.', 'error');
+      }
+    }
+
+    async function setMeetLive(id) {
+      await api.put(`/meets/${id}`, { status: 'live' });
+      showToast('Sesi kelas sekarang berstatus LIVE!', 'success');
+      loadAdminMeets();
+    }
+
+    async function setMeetFinished(id) {
+      await api.put(`/meets/${id}`, { status: 'finished' });
+      showToast('Sesi kelas telah diselesaikan.', 'success');
+      loadAdminMeets();
+    }
+
+    async function deleteMeet(id) {
+      if (confirm('Yakin ingin menghapus sesi Google Meet ini?')) {
+        await api.delete(`/meets/${id}`);
+        showToast('Sesi berhasil dihapus.', 'success');
+        loadAdminMeets();
+      }
+    }
+
+    async function loadAllKuisResults() {
+      const res = await api.get('/kuis/results/all');
+      const tbody = document.getElementById('allKuisTableBody');
+      if (res && res.success && res.data.length > 0) {
+        tbody.innerHTML = res.data.map(item => `
+          <tr>
+            <td><strong>${item.user_name}</strong><br><small style="color:var(--gray);">${item.user_email || '-'}</small></td>
+            <td>${item.quiz_title}</td>
+            <td>${item.jawaban_benar} / ${item.total_soal}</td>
+            <td><strong style="color:var(--primary); font-size:1.1rem;">${item.score} Poin</strong></td>
+            <td>${new Date(item.created_at).toLocaleTimeString('id-ID')} WIB</td>
+          </tr>
+        `).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--gray);">Belum ada siswa yang menyelesaikan kuis.</td></tr>';
+      }
+    }
+
+    // ==================== FITUR KELOLA AKUN SISWA OLEH GURU ====================
+    function generateRandomStudentPassword() {
+      const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+      let pass = 'lma-';
+      for (let i = 0; i < 5; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('newStudentPassword').value = pass;
+      showToast(`Password acak dibuat: ${pass}`, 'info');
+    }
+
+    async function loadAdminStudents() {
+      const activeTbody = document.getElementById('allStudentsTableBody');
+      const pendingTbody = document.getElementById('pendingStudentsTableBody');
+      const badge = document.getElementById('studentCountBadge');
+      const pendingChip = document.getElementById('pendingBadgeChip');
+      const pendingTag = document.getElementById('pendingCountTag');
+
+      activeTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--gray);"><i class="ph-bold ph-spinner ph-spin"></i> Memuat daftar siswa...</td></tr>';
+      if (pendingTbody) {
+        pendingTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1.25rem; color:var(--gray);"><i class="ph-bold ph-spinner ph-spin"></i> Memeriksa pendaftaran pending...</td></tr>';
+      }
+
+      try {
+        const res = await api.get('/auth/students');
+        if (res && res.success && res.data) {
+          const allStudents = res.data;
+          
+          // Pisahkan siswa pending approval vs siswa aktif
+          const pendingStudents = allStudents.filter(s => s.status === 'pending');
+          const activeStudents = allStudents.filter(s => s.status !== 'pending' && s.status !== 'rejected');
+
+          badge.innerText = `${activeStudents.length} Siswa Aktif`;
+
+          // Update badge notifikasi pending di tab
+          if (pendingStudents.length > 0) {
+            pendingChip.innerText = pendingStudents.length;
+            pendingChip.style.display = 'inline-block';
+            pendingTag.innerText = `${pendingStudents.length} Menunggu Persetujuan Guru`;
+            pendingTag.style.background = '#FED7D7';
+            pendingTag.style.color = '#9B2C2C';
+            pendingTag.style.borderColor = '#FEB2B2';
+          } else {
+            pendingChip.style.display = 'none';
+            pendingTag.innerText = '0 Menunggu Persetujuan';
+            pendingTag.style.background = '#FEFCBF';
+            pendingTag.style.color = '#744210';
+            pendingTag.style.borderColor = '#ECC94B';
+          }
+
+          // 1. Render Tabel Siswa Menunggu Persetujuan (Pending)
+          if (pendingTbody) {
+            if (pendingStudents.length === 0) {
+              pendingTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1.25rem; color:#22543D; background:#F0FFF4;"><i class="ph-bold ph-check-circle" style="color:#38A169;"></i> Semua pendaftaran siswa sudah ditinjau. Tidak ada siswa yang menunggu persetujuan saat ini.</td></tr>';
+            } else {
+              pendingTbody.innerHTML = pendingStudents.map(s => `
+                <tr style="background:#FFFDF5;">
+                  <td>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                      <img src="${s.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(s.name)}`}" alt="${s.name}" style="width:38px; height:38px; border-radius:50%; background:#EBF2FF; border:2px solid #ECC94B;">
+                      <div>
+                        <strong style="color:var(--dark); font-size:0.95rem;">${s.name}</strong>
+                        <div style="font-size:0.78rem; color:#D69E2E; font-weight:700;">⚠️ Mendaftar Mandiri</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span style="font-family:monospace; font-size:0.9rem; color:var(--primary); font-weight:600;">
+                      ${s.email}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" style="background:#EBF2FF; color:var(--primary); font-size:0.8rem;">
+                      ${s.kelas || 'Bahasa Jerman & Matematika SD'}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" style="background:#FEFCBF; color:#744210; font-size:0.78rem; border:1px solid #ECC94B;">
+                      <i class="ph-bold ph-hourglass-medium"></i> Menunggu Persetujuan
+                    </span>
+                  </td>
+                  <td style="text-align: right;">
+                    <div style="display:inline-flex; gap:0.4rem;">
+                      <button class="btn btn-sm btn-primary" style="padding:5px 12px; font-size:0.82rem; font-weight:700;" onclick="approveStudent('${s.id}', '${s.name}')">
+                        <i class="ph-bold ph-check"></i> Setujui Akun
+                      </button>
+                      <button class="btn btn-outline btn-sm" style="padding:5px 9px; font-size:0.82rem; color:var(--accent-red); border-color:#FED7D7;" onclick="rejectStudentConfirm('${s.id}', '${s.name}')" title="Tolak Pendaftaran">
+                        <i class="ph-bold ph-x"></i> Tolak
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('');
+            }
+          }
+
+          // 2. Render Tabel Siswa Aktif
+          if (activeStudents.length === 0) {
+            activeTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--gray);">Belum ada akun siswa aktif. Daftarkan siswa baru di atas atau setujui siswa yang mendaftar.</td></tr>';
+            return;
+          }
+
+          activeTbody.innerHTML = activeStudents.map(s => `
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                  <img src="${s.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(s.name)}`}" alt="${s.name}" style="width:38px; height:38px; border-radius:50%; background:#EBF2FF; border:1px solid #CBD5E0;">
+                  <div>
+                    <strong style="color:var(--dark); font-size:0.95rem;">${s.name}</strong>
+                    <div style="font-size:0.78rem; color:var(--gray);">ID: #${s.id}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span style="font-family:monospace; font-size:0.9rem; color:var(--primary); font-weight:600;">
+                  ${s.email}
+                </span>
+              </td>
+              <td>
+                <span class="badge" style="background:#EBF2FF; color:var(--primary); font-size:0.8rem;">
+                  ${s.kelas || 'Bahasa Jerman & Matematika SD'}
+                </span>
+              </td>
+              <td>
+                <span class="badge" style="background:#C6F6D5; color:#22543D; font-size:0.78rem;">
+                  <i class="ph-bold ph-check-circle"></i> Aktif
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <div style="display:inline-flex; gap:0.4rem;">
+                  <button class="btn btn-outline btn-sm" style="padding:4px 10px; font-size:0.8rem;" title="Reset Password Siswa" onclick="resetStudentPasswordPrompt('${s.id}', '${s.name}', '${s.email}')">
+                    <i class="ph-bold ph-key"></i> Reset Password
+                  </button>
+                  <button class="btn btn-outline btn-sm" style="padding:4px 8px; font-size:0.8rem; color:var(--accent-red); border-color:#FED7D7;" title="Hapus Akun Siswa" onclick="deleteStudentConfirm('${s.id}', '${s.name}')">
+                    <i class="ph-bold ph-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        activeTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--accent-red);">Gagal memuat siswa: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function approveStudent(studentId, studentName) {
+      if (confirm(`Setujui pendaftaran akun siswa "${studentName}"?\nSetelah disetujui, siswa dapat langsung login ke portal belajar.`)) {
+        try {
+          const res = await api.put(`/auth/students/${studentId}/approve`);
+          if (res && res.success) {
+            showToast(`Akun siswa "${studentName}" berhasil disetujui!`, 'success');
+            loadAdminStudents();
+          } else {
+            showToast(res.message || 'Gagal menyetujui akun.', 'error');
+          }
+        } catch (err) {
+          showToast(err.message || 'Gagal menyetujui akun.', 'error');
+        }
+      }
+    }
+
+    async function rejectStudentConfirm(studentId, studentName) {
+      if (confirm(`Tolak pendaftaran akun siswa "${studentName}"?\nSiswa tidak akan dapat login.`)) {
+        try {
+          const res = await api.put(`/auth/students/${studentId}/reject`);
+          if (res && res.success) {
+            showToast(`Pendaftaran siswa "${studentName}" telah ditolak.`, 'info');
+            loadAdminStudents();
+          } else {
+            showToast(res.message || 'Gagal menolak akun.', 'error');
+          }
+        } catch (err) {
+          showToast(err.message || 'Gagal menolak akun.', 'error');
+        }
+      }
+    }
+
+    async function handleCreateStudent(e) {
+      e.preventDefault();
+      const name = document.getElementById('newStudentName').value.trim();
+      const email = document.getElementById('newStudentEmail').value.trim();
+      const kelas = document.getElementById('newStudentKelas').value;
+      const password = document.getElementById('newStudentPassword').value.trim();
+      const btn = document.getElementById('btnSubmitStudent');
+
+      if (!name || !email || !password) {
+        showToast('Semua kolom pendaftaran siswa wajib diisi!', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Mendaftarkan Akun...';
+
+      try {
+        const res = await api.post('/auth/students', {
+          name,
+          email,
+          kelas,
+          password,
+          sendEmail: true
+        });
+
+        if (res && res.success) {
+          showToast(`Akun siswa ${name} (${email}) berhasil didaftarkan! Email akses telah dikirim.`, 'success');
+          document.getElementById('newStudentName').value = '';
+          document.getElementById('newStudentEmail').value = '';
+          document.getElementById('newStudentPassword').value = 'lma123';
+          loadAdminStudents();
+        } else {
+          showToast(res.message || 'Gagal membuat akun siswa.', 'error');
+        }
+      } catch (err) {
+        showToast(err.message || 'Terjadi kesalahan sistem saat mendaftar.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Buat Akun & Kirim Email Akses Siswa';
+      }
+    }
+
+    async function resetStudentPasswordPrompt(studentId, studentName, studentEmail) {
+      const newPass = prompt(`Masukkan password baru untuk siswa:\n"${studentName}" (${studentEmail})`, 'lma2026');
+      if (!newPass) return;
+
+      if (newPass.length < 6) {
+        showToast('Password minimal harus 6 karakter!', 'error');
+        return;
+      }
+
+      try {
+        const res = await api.put(`/auth/students/${studentId}/reset-password`, { newPassword: newPass });
+        if (res && res.success) {
+          showToast(`Password siswa "${studentName}" berhasil diubah menjadi: ${newPass}`, 'success');
+          loadAdminStudents();
+        } else {
+          showToast(res.message || 'Gagal mereset password.', 'error');
+        }
+      } catch (err) {
+        showToast(err.message || 'Gagal mereset password.', 'error');
+      }
+    }
+
+    async function deleteStudentConfirm(studentId, studentName) {
+      if (confirm(`Apakah Anda yakin ingin menghapus akun siswa "${studentName}"?\nSiswa tidak akan dapat login lagi.`)) {
+        try {
+          const res = await api.delete(`/auth/students/${studentId}`);
+          if (res && res.success) {
+            showToast(`Akun siswa "${studentName}" berhasil dihapus.`, 'success');
+            loadAdminStudents();
+          } else {
+            showToast(res.message || 'Gagal menghapus siswa.', 'error');
+          }
+        } catch (err) {
+          showToast(err.message || 'Gagal menghapus siswa.', 'error');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

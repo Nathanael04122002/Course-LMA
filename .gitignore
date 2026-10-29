@@ -1,0 +1,25 @@
+# Environment variables (SANGAT RAHASIA - JANGAN PERNAH DI-COMMIT)
+.env
+.env.*
+!.env.example
+*.env
+**/.env
+**/.env.*
+!**/.env.example
+
+# Node.js
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database local files, uploads & logs
+my-backend/src/data/*.json
+my-backend/uploads/*
+!my-backend/uploads/.gitkeep
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

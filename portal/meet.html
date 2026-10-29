@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruang Google Meet | LMA – Lerne mit Andre</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div id="navbarContainer"></div>
+
+  <main class="portal-main">
+    
+    <!-- Heading Banner -->
+    <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+      <div>
+        <span class="greeting-badge" style="background: var(--primary-light); color: var(--primary); border:none;">
+          <i class="ph-fill ph-video-camera"></i> Live Open Class
+        </span>
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--primary-dark); margin-top: 0.5rem;">
+          Ruang Kelas Google Meet
+        </h2>
+        <p style="color: var(--gray); font-size: 0.95rem; margin-top: 0.25rem;">
+          Klik tombol gabung untuk masuk ke sesi tatap muka interaktif bersama Kak Andre dan tim pengajar LMA Bali.
+        </p>
+      </div>
+      <a href="https://meet.google.com" target="_blank" class="btn btn-outline">
+        <i class="ph-bold ph-arrow-square-out"></i> Buka Google Meet Web
+      </a>
+    </div>
+
+    <!-- Active / Live Now Highlight -->
+    <div id="liveHighlightArea"></div>
+
+    <!-- Sesi Jadwal Kelas Mendatang -->
+    <div class="section-heading-group">
+      <h3 class="section-title">
+        <i class="ph-fill ph-calendar-check" style="color: var(--primary);"></i> Jadwal Sesi Kelas Mendatang
+      </h3>
+    </div>
+
+    <div id="meetListContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+      <div style="text-align: center; padding: 2rem; grid-column: 1/-1; color: var(--gray);">
+        <i class="ph-bold ph-spinner ph-spin" style="font-size: 2rem;"></i>
+        <p style="margin-top: 0.5rem;">Memuat jadwal kelas Google Meet...</p>
+      </div>
+    </div>
+
+    <!-- Aturan Kelas Online untuk Anak -->
+    <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.75rem;">
+      <h4 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: var(--dark);">
+        <i class="ph-fill ph-lightbulb" style="color: #D69E2E;"></i> Tips Nyaman Belajar di Google Meet LMA:
+      </h4>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        <div style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+          <strong style="color: var(--primary); display: block; margin-bottom: 0.25rem;">1. Masuk 5 Menit Lebih Awal</strong>
+          <span style="font-size: 0.82rem; color: var(--gray);">Pastikan koneksi internet stabil dan suara speaker terdengar jelas.</span>
+        </div>
+        <div style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+          <strong style="color: var(--primary); display: block; margin-bottom: 0.25rem;">2. Nyalakan Kamera</strong>
+          <span style="font-size: 0.82rem; color: var(--gray);">Tatap muka membuat suasana belajar jauh lebih seru dan komunikatif!</span>
+        </div>
+        <div style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+          <strong style="color: var(--primary); display: block; margin-bottom: 0.25rem;">3. Siapkan Buku & Catatan</strong>
+          <span style="font-size: 0.82rem; color: var(--gray);">Catat trik cepat matematika & kosakata bahasa Jerman yang diajarkan Kak Andre.</span>
+        </div>
+        <div style="background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+          <strong style="color: var(--primary); display: block; margin-bottom: 0.25rem;">4. Mute Mic Saat Menyimak</strong>
+          <span style="font-size: 0.82rem; color: var(--gray);">Gunakan tombol 'Raise Hand' (Angkat Tangan) jika ingin bertanya ya!</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const user = requireAuth();
+    if (user) {
+      renderPortalNavbar('meet');
+      loadMeets();
+    }
+
+    async function loadMeets() {
+      const res = await api.get('/meets');
+      const container = document.getElementById('meetListContainer');
+      const liveArea = document.getElementById('liveHighlightArea');
+
+      if (res && res.success && res.data.length > 0) {
+        const liveMeet = res.data.find(m => m.status === 'live');
+        
+        if (liveMeet) {
+          liveArea.innerHTML = `
+            <div style="background: linear-gradient(135deg, #742A2A 0%, #9B2C2C 50%, #C53030 100%); color: white; border-radius: var(--radius-lg); padding: 2.25rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-lg); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+              <div>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.35rem 0.85rem; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.75rem;">
+                  <span style="width: 8px; height: 8px; background: #FEB2B2; border-radius: 50%; display: inline-block;"></span> KELAS SEDANG BERLANGSUNG
+                </span>
+                <h3 style="font-family: var(--font-heading); font-size: 1.7rem; font-weight: 800;">${liveMeet.title}</h3>
+                <p style="margin-top: 0.35rem; color: rgba(255,255,255,0.9); font-size: 0.95rem;">
+                  Pengajar: <strong>${liveMeet.instructor}</strong> • Program: <strong>${liveMeet.program}</strong>
+                </p>
+                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.8); margin-top: 0.5rem; font-style: italic;">
+                  "${liveMeet.notes || 'Ayo segera gabung, kelas sudah dimulai!'}"
+                </p>
+              </div>
+              <div>
+                <a href="${liveMeet.meet_link}" target="_blank" class="btn btn-yellow btn-lg" style="box-shadow: 0 8px 24px rgba(0,0,0,0.3); font-size: 1.15rem;">
+                  <i class="ph-bold ph-video-camera"></i> GABUNG SEKARANG
+                </a>
+              </div>
+            </div>
+          `;
+        } else {
+          liveArea.innerHTML = '';
+        }
+
+        container.innerHTML = res.data.map(meet => {
+          const startDate = new Date(meet.start_time);
+          const formattedDate = startDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+          const formattedTime = startDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WITA';
+
+          const isLive = meet.status === 'live';
+
+          return `
+            <div style="background: white; border: 1.5px solid ${isLive ? 'var(--accent-red)' : 'var(--border)'}; border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                  <span class="modul-badge ${meet.program.toLowerCase().includes('jerman') ? 'jerman' : 'matematika'}">
+                    ${meet.program}
+                  </span>
+                  <span class="status-chip ${isLive ? 'sakit' : 'hadir'}">
+                    ${isLive ? '🔴 Live Now' : '📅 Terjadwal'}
+                  </span>
+                </div>
+                <h4 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">
+                  ${meet.title}
+                </h4>
+                <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.5rem;">
+                  <i class="ph-fill ph-user" style="color: var(--primary);"></i> ${meet.instructor}
+                </p>
+                <p style="font-size: 0.82rem; color: var(--gray); margin-bottom: 1rem;">
+                  <i class="ph-fill ph-clock" style="color: var(--primary);"></i> ${formattedDate} • ${formattedTime}
+                </p>
+                ${meet.notes ? `<p style="font-size: 0.8rem; background: var(--gray-light); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); color: var(--dark); margin-bottom: 1rem;">📝 ${meet.notes}</p>` : ''}
+              </div>
+              <a href="${meet.meet_link}" target="_blank" class="btn ${isLive ? 'btn-danger' : 'btn-primary'} btn-block">
+                <i class="ph-bold ph-video-camera"></i> ${isLive ? 'Gabung Sesi Live' : 'Link Google Meet'}
+              </a>
+            </div>
+          `;
+        }).join('');
+      } else {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 3rem; grid-column: 1/-1; background: white; border-radius: var(--radius-md);">
+            <i class="ph-bold ph-calendar-blank" style="font-size: 3rem; color: var(--gray);"></i>
+            <h4 style="margin-top: 1rem; color: var(--dark);">Belum Ada Jadwal Kelas Terdekat</h4>
+            <p style="font-size: 0.88rem; color: var(--gray); margin-top: 0.35rem;">Jadwal sesi live Google Meet akan diumumkan pengajar segera.</p>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

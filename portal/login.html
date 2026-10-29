@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Portal Belajar | LMA – Lerne mit Andre (Bali)</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+  <div class="auth-page-wrapper">
+    <div class="auth-card">
+      <img src="../Logo.png" alt="LMA Logo" class="auth-logo" onerror="this.src='https://api.dicebear.com/7.x/shapes/svg?seed=LMA'">
+      
+      <h2>Portal Belajar LMA</h2>
+      <p class="subtitle">Open Class Online Bahasa Jerman & Matematika SD (Bali)</p>
+
+      <!-- Toggle Mode: Login / Register -->
+      <div style="display:flex; background:var(--gray-light); border-radius:var(--radius-full); padding:4px; margin-bottom:1.5rem;">
+        <button id="tabLogin" class="btn btn-sm" style="flex:1; border-radius:var(--radius-full); background:var(--white); color:var(--primary); font-weight:700;" onclick="switchAuthTab('login')">
+          Masuk Akun
+        </button>
+        <button id="tabRegister" class="btn btn-sm" style="flex:1; border-radius:var(--radius-full); background:transparent; color:var(--gray);" onclick="switchAuthTab('register')">
+          Daftar Siswa Baru
+        </button>
+      </div>
+
+      <!-- Wadah Pesan Notifikasi Approval -->
+      <div id="loginAlertBox" style="display: none; margin-bottom: 1.25rem;"></div>
+
+      <!-- Form Login -->
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Email Terdaftar</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="contoh: budi@lma.id" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin">
+          <i class="ph-bold ph-sign-in"></i> Masuk Sekarang
+        </button>
+      </form>
+
+      <!-- Form Register (Hidden initially) -->
+      <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label class="form-label">Nama Lengkap Siswa</label>
+          <input type="text" id="regName" class="form-input" placeholder="contoh: Budi Pratama" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="budi@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Program yang Diikuti</label>
+          <select id="regKelas" class="form-select">
+            <option value="Bahasa Jerman & Matematika SD">Bahasa Jerman & Matematika SD (Keduanya)</option>
+            <option value="Bahasa Jerman">Bahasa Jerman Saja</option>
+            <option value="Matematika SD">Matematika SD Saja</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Buat Password (Minimal 6 Karakter)</label>
+          <input type="password" id="regPassword" class="form-input" placeholder="••••••••" minlength="6" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnRegister">
+          <i class="ph-bold ph-user-plus"></i> Buat Akun Siswa
+        </button>
+      </form>
+
+      <!-- Quick Demo Login Box (Hanya aktif saat pengujian lokal) -->
+      <div class="quick-demo-box" id="quickDemoBox">
+        <p><i class="ph-fill ph-lightning"></i> Coba Akun Demo Cepat (1-Klik):</p>
+        <div class="quick-demo-btns">
+          <button type="button" class="btn btn-outline btn-sm" style="flex:1; background:var(--white);" onclick="fillDemo('budi@lma.id', 'password123')">
+            👦 Siswa (Budi)
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" style="flex:1; background:var(--white);" onclick="fillDemo('andre@lma.id', 'password123')">
+            👨‍🏫 Guru (Andre)
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; font-size: 0.85rem;">
+        <a href="../index.html" style="color: var(--primary); font-weight: 700;">
+          <i class="ph-bold ph-arrow-left"></i> Kembali ke Website Utama LMA
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    // Otomatis sembunyikan kotak akun demo ketika dideploy ke VPS / domain publik
+    const isLocalHost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+    const demoBox = document.getElementById('quickDemoBox');
+    if (demoBox && !isLocalHost && !window.location.search.includes('demo=true')) {
+      demoBox.style.display = 'none';
+    }
+
+    // Cek jika sudah login sebelumnya, berikan opsi lanjut atau ganti akun
+    const existingUser = getUser();
+    if (existingUser && !window.location.search.includes('relogin')) {
+      // Jika sudah ada sesi, biarkan user tetap di halaman ini jika ingin ganti akun atau klik Masuk Cepat
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegister = document.getElementById('tabRegister');
+
+      if (tab === 'login') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        tabLogin.style.background = 'var(--white)';
+        tabLogin.style.color = 'var(--primary)';
+        tabRegister.style.background = 'transparent';
+        tabRegister.style.color = 'var(--gray)';
+      } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        tabRegister.style.background = 'var(--white)';
+        tabRegister.style.color = 'var(--primary)';
+        tabLogin.style.background = 'transparent';
+        tabLogin.style.color = 'var(--gray)';
+      }
+    }
+
+    function fillDemo(email, pass) {
+      switchAuthTab('login');
+      document.getElementById('loginEmail').value = email;
+      document.getElementById('loginPassword').value = pass;
+      showToast(`Mengisi data login demo (${email})`);
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('btnLogin');
+      const alertBox = document.getElementById('loginAlertBox');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Memproses...';
+      if (alertBox) alertBox.style.display = 'none';
+
+      try {
+        const res = await api.post('/auth/login', { email, password });
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph-bold ph-sign-in"></i> Masuk Sekarang';
+
+        if (res && res.success) {
+          setAuth(res.token, res.user);
+          showToast(res.message || 'Login berhasil!', 'success');
+          setTimeout(() => {
+            window.location.href = res.user.role === 'guru' || res.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+          }, 500);
+        } else if (res && res.status === 'pending') {
+          // Akun siswa belum disetujui oleh Guru / Admin
+          if (alertBox) {
+            alertBox.innerHTML = `
+              <div style="background:#FEFCBF; border:1.5px solid #ECC94B; border-radius:12px; padding:14px; color:#744210; font-size:0.86rem; text-align:left;">
+                <div style="font-weight:800; font-size:0.92rem; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                  <i class="ph-fill ph-hourglass-medium" style="color:#D69E2E; font-size:1.1rem;"></i> Menunggu Persetujuan Guru
+                </div>
+                Akun <strong>${email}</strong> sedang menunggu persetujuan (approval) dari Guru/Admin LMA.
+                Siswa belum dapat masuk sampai akun diaktifkan oleh Kak Andre.<br>
+                <div style="margin-top:8px;">
+                  <a href="https://wa.me/628213132576" target="_blank" class="btn btn-sm btn-primary" style="font-size:0.78rem; padding:4px 10px; display:inline-flex;">
+                    <i class="ph-bold ph-whatsapp-logo"></i> Hubungi Admin WhatsApp (+62 821-3132-576)
+                  </a>
+                </div>
+              </div>
+            `;
+            alertBox.style.display = 'block';
+          }
+          showToast(res.message || 'Akun Anda sedang menunggu persetujuan guru.', 'warning');
+        } else {
+          showToast((res && res.message) ? res.message : 'Gagal login, periksa email & password.', 'error');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph-bold ph-sign-in"></i> Masuk Sekarang';
+        showToast(err.message || 'Terjadi kendala saat login.', 'error');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const kelas = document.getElementById('regKelas').value;
+      const password = document.getElementById('regPassword').value;
+      const btn = document.getElementById('btnRegister');
+      const alertBox = document.getElementById('loginAlertBox');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Mendaftarkan...';
+
+      try {
+        const res = await api.post('/auth/register', { name, email, kelas, password, role: 'siswa' });
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph-bold ph-user-plus"></i> Buat Akun Siswa';
+
+        if (res && res.success) {
+          // Beralih ke tab login & tampilkan notifikasi bahwa akun menunggu persetujuan
+          switchAuthTab('login');
+          document.getElementById('loginEmail').value = email;
+          document.getElementById('loginPassword').value = '';
+          document.getElementById('regName').value = '';
+          document.getElementById('regEmail').value = '';
+          document.getElementById('regPassword').value = '';
+
+          if (alertBox) {
+            alertBox.innerHTML = `
+              <div style="background:#EBF2FF; border:1.5px solid #1A56DB; border-radius:12px; padding:14px; color:#0F3C9B; font-size:0.86rem; text-align:left;">
+                <div style="font-weight:800; font-size:0.95rem; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                  <i class="ph-fill ph-check-circle" style="color:var(--primary); font-size:1.1rem;"></i> Pendaftaran Berhasil Diajukan!
+                </div>
+                Halo <strong>${name}</strong>, pendaftaran akun Anda telah kami terima dan sekarang <strong>menunggu persetujuan Guru/Admin LMA</strong>.
+                Setelah akun disetujui oleh Kak Andre, Anda dapat langsung masuk dengan password yang baru saja Anda buat.<br>
+                <div style="margin-top:8px;">
+                  <a href="https://wa.me/628213132576" target="_blank" class="btn btn-sm btn-primary" style="font-size:0.78rem; padding:4px 10px; display:inline-flex;">
+                    <i class="ph-bold ph-whatsapp-logo"></i> Konfirmasi ke WA Admin (+62 821-3132-576)
+                  </a>
+                </div>
+              </div>
+            `;
+            alertBox.style.display = 'block';
+          }
+
+          showToast('Pendaftaran diajukan! Menunggu persetujuan guru.', 'info');
+        } else {
+          showToast(res.message || 'Pendaftaran gagal.', 'error');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph-bold ph-user-plus"></i> Buat Akun Siswa';
+        showToast(err.message || 'Pendaftaran gagal.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modul Pembelajaran | LMA – Lerne mit Andre</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <div id="navbarContainer"></div>
+
+  <main class="portal-main">
+    
+    <!-- Heading Banner -->
+    <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+      <div>
+        <span class="greeting-badge" style="background: var(--primary-light); color: var(--primary); border:none;">
+          <i class="ph-fill ph-books"></i> Pusat Materi Belajar
+        </span>
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--primary-dark); margin-top: 0.5rem;">
+          Modul Bahasa Jerman & Matematika SD
+        </h2>
+        <p style="color: var(--gray); font-size: 0.95rem; margin-top: 0.25rem;">
+          Pilih modul di bawah ini untuk membaca ringkasan materi interaktif atau mengunduh bahan belajar PDF.
+        </p>
+      </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="filter-tabs">
+      <button class="filter-btn active" onclick="filterModul('all', this)">
+        <i class="ph-bold ph-squares-four"></i> Semua Modul (<span id="countAll">0</span>)
+      </button>
+      <button class="filter-btn" onclick="filterModul('jerman', this)">
+        🇩🇪 Bahasa Jerman (<span id="countJerman">0</span>)
+      </button>
+      <button class="filter-btn" onclick="filterModul('matematika', this)">
+        🔢 Matematika SD (<span id="countMath">0</span>)
+      </button>
+    </div>
+
+    <!-- Grid Modul Cards -->
+    <div class="modules-grid" id="modulesContainer">
+      <div style="text-align: center; padding: 2rem; grid-column: 1/-1; color: var(--gray);">
+        <i class="ph-bold ph-spinner ph-spin" style="font-size: 2rem;"></i>
+        <p style="margin-top: 0.5rem;">Memuat daftar modul pembelajaran...</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal Reader Materi Interaktif -->
+  <div class="modal-overlay" id="modulModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalModulTitle">Judul Modul</h3>
+        <button class="modal-close-btn" onclick="closeModulModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+          <span class="modul-badge jerman" id="modalModulBadge">Kategori</span>
+          <span class="status-chip hadir" id="modalModulLevel">Level</span>
+          <span style="font-size: 0.8rem; color: var(--gray); display: flex; align-items: center; gap: 0.3rem;">
+            <i class="ph-fill ph-clock"></i> <span id="modalModulDuration">30</span> Menit
+          </span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--gray); margin-bottom: 1.5rem;" id="modalModulDesc"></p>
+
+        <div style="background: #F8FAFC; border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; font-size: 0.92rem; line-height: 1.8;" id="modalModulContent">
+          <!-- Text isi materi -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modalFooterActions">
+        <button class="btn btn-outline" onclick="closeModulModal()">Tutup</button>
+        <span id="customFileAttachmentBtn"></span>
+        <button class="btn btn-primary" id="btnDownloadPDF" onclick="downloadModulPDF()">
+          <i class="ph-bold ph-printer"></i> Cetak / Simpan Ringkasan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const user = requireAuth();
+    let allModulesData = [];
+    let currentFilter = 'all';
+    let activeModalModul = null;
+
+    if (user) {
+      renderPortalNavbar('modul');
+      loadModules();
+    }
+
+    async function loadModules() {
+      const res = await api.get('/modul');
+      if (res && res.success) {
+        allModulesData = res.data;
+        updateCounts();
+        renderModuleCards();
+      }
+    }
+
+    function updateCounts() {
+      document.getElementById('countAll').innerText = allModulesData.length;
+      document.getElementById('countJerman').innerText = allModulesData.filter(m => m.kategori === 'jerman').length;
+      document.getElementById('countMath').innerText = allModulesData.filter(m => m.kategori === 'matematika').length;
+    }
+
+    function filterModul(kategori, btnEl) {
+      currentFilter = kategori;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      renderModuleCards();
+    }
+
+    function renderModuleCards() {
+      const container = document.getElementById('modulesContainer');
+      const filtered = currentFilter === 'all'
+        ? allModulesData
+        : allModulesData.filter(m => m.kategori.toLowerCase() === currentFilter.toLowerCase());
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 3rem; grid-column: 1/-1; background: white; border-radius: var(--radius-md);">
+            <i class="ph-bold ph-folder-open" style="font-size: 3rem; color: var(--gray);"></i>
+            <h4 style="margin-top: 1rem; color: var(--dark);">Belum Ada Modul pada Kategori Ini</h4>
+            <p style="font-size: 0.88rem; color: var(--gray);">Modul baru akan ditambahkan oleh guru pengajar.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(modul => {
+        const isJerman = modul.kategori.toLowerCase() === 'jerman';
+        const hasAttachment = !!(modul.file_url || modul.file_name);
+        return `
+          <div class="modul-card">
+            <div class="modul-card-header">
+              <span class="modul-badge ${isJerman ? 'jerman' : 'matematika'}">
+                ${isJerman ? '🇩🇪 Bahasa Jerman' : '🔢 Matematika SD'}
+              </span>
+              <span style="font-size: 0.75rem; color: var(--gray); font-weight: 600;">
+                ${modul.level || 'Semua Level'}
+              </span>
+            </div>
+
+            <div class="modul-card-body">
+              <h4 class="modul-card-title">${modul.title}</h4>
+              <p class="modul-card-desc">${modul.deskripsi || 'Materi pembelajaran terstruktur untuk siswa LMA Bali.'}</p>
+              
+              ${hasAttachment ? `
+                <div style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: #C53030; font-weight: 700; background: #FFF5F5; padding: 0.35rem 0.65rem; border-radius: var(--radius-sm); border: 1px solid #FEB2B2;">
+                  <i class="ph-bold ph-file-pdf"></i> Ada File Lampiran: ${modul.file_name || 'Dokumen PDF / Bahan Belajar'}
+                </div>
+              ` : ''}
+
+              <button class="btn btn-primary btn-block btn-sm" onclick="openModulModal(${modul.id})">
+                <i class="ph-bold ph-book-open"></i> Buka & Pelajari Modul
+              </button>
+            </div>
+
+            <div class="modul-card-footer">
+              <span><i class="ph-fill ph-clock"></i> ${modul.durasi_menit || 30} Menit</span>
+              <span style="color: var(--primary);"><i class="ph-bold ph-check-circle"></i> Materi Terverifikasi</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openModulModal(id) {
+      const modul = allModulesData.find(m => Number(m.id) === Number(id));
+      if (!modul) return;
+      activeModalModul = modul;
+
+      document.getElementById('modalModulTitle').innerText = modul.title;
+      document.getElementById('modalModulBadge').innerText = modul.kategori === 'jerman' ? '🇩🇪 Bahasa Jerman' : '🔢 Matematika SD';
+      document.getElementById('modalModulBadge').className = `modul-badge ${modul.kategori}`;
+      document.getElementById('modalModulLevel').innerText = modul.level || 'SD & Pemula';
+      document.getElementById('modalModulDuration').innerText = modul.durasi_menit || 30;
+      document.getElementById('modalModulDesc').innerText = modul.deskripsi || '';
+
+      // Tampilkan materi teks (dengan format Markdown sederhana ke HTML)
+      let formattedText = modul.materi_teks || 'Materi teks rangkuman sedang disiapkan oleh pengajar LMA.';
+      formattedText = formattedText
+        .replace(/### (.*?)\n/g, '<h4 style="color:var(--primary-dark); margin: 1rem 0 0.5rem 0; font-size:1.05rem;">$1</h4>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/- (.*?)\n/g, '<li style="margin-left:1.5rem; margin-bottom:0.35rem;">$1</li>')
+        .replace(/\n\n/g, '<br>');
+
+      document.getElementById('modalModulContent').innerHTML = formattedText;
+
+      // Tombol download file lampiran (PDF/Word/Lainnya)
+      const attachBox = document.getElementById('customFileAttachmentBtn');
+      if (modul.file_url) {
+        attachBox.innerHTML = `
+          <a href="${modul.file_url}" target="_blank" download="${modul.file_name || 'modul-pembelajaran.pdf'}" class="btn btn-danger">
+            <i class="ph-bold ph-download-simple"></i> Unduh File (${modul.file_name || 'Dokumen PDF'})
+          </a>
+        `;
+      } else {
+        attachBox.innerHTML = '';
+      }
+
+      document.getElementById('modulModal').classList.add('active');
+    }
+
+    function closeModulModal() {
+      document.getElementById('modulModal').classList.remove('active');
+      activeModalModul = null;
+    }
+
+    function downloadModulPDF() {
+      if (!activeModalModul) return;
+      showToast(`Mengunduh materi: ${activeModalModul.title}`, 'success');
+      // Buka cetak / download rangkuman
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${activeModalModul.title} - LMA Bali</title>
+            <style>
+              body { font-family: sans-serif; padding: 40px; color: #1A202C; line-height: 1.6; }
+              h1 { color: #1A56DB; border-bottom: 2px solid #1A56DB; padding-bottom: 10px; }
+              .badge { display: inline-block; background: #EBF2FF; color: #1A56DB; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 14px; margin-bottom: 20px; }
+              .content { background: #F8FAFC; padding: 20px; border-radius: 8px; border: 1px solid #E2E8F0; }
+              footer { margin-top: 40px; font-size: 12px; color: #718096; text-align: center; }
+            </style>
+          </head>
+          <body>
+            <h1>LMA – Lerne mit Andre</h1>
+            <p><strong>Open Class Online Bahasa Jerman & Matematika SD (Bali, Indonesia)</strong></p>
+            <div class="badge">${activeModalModul.title}</div>
+            <p>${activeModalModul.deskripsi}</p>
+            <hr style="border:none; border-top:1px solid #E2E8F0; margin:20px 0;">
+            <div class="content">
+              ${document.getElementById('modalModulContent').innerHTML}
+            </div>
+            <footer>
+              Dokumen Pembelajaran Resmi LMA – Lerne mit Andre &bull; Hubungi WA: +62 821-3132-576
+            </footer>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      setTimeout(() => { printWindow.print(); }, 500);
+    }
+  </script>
+</body>
+</html>
